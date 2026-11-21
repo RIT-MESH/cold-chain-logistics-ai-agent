@@ -1,0 +1,60 @@
+# Image build pipeline — one of the FOUR separated workflows (C6/ADR-6).
+# Builds application images and pushes them tagged `sha-<commit>` — NO
+# deploy rights of any kind (push-only role, modules/oidc `build`).
+#
+# PHASE 3 ACTIVATION: today only integrations/floci/Dockerfile.worker
+# exists. The gateway+agent and Streamlit images ship with the Phase 3
+# container work; the guard step below fails with a clear message until
+# their Dockerfiles land, so this workflow can be merged now in its final
+# shape without false green builds.
+name: Build Images
+
+on:
+  pull_request:
+    paths: ["**/Dockerfile*", "docker/**", ".github/workflows/build-images.yml"]
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Image to build (worker | gateway | streamlit | all)"
+        required: true
+        default: all
+        type: choice
+        options: [worker, gateway, streamlit, all]
+
+env:
+  TF_AWS_REGION: ${{ vars.AWS_REGION }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard — required Dockerfiles must exist (Phase 3 adds gateway/streamlit)
+        run: |
+          missing=0
+          for f in integrations/floci/Dockerfile.worker; do
+            [ -f "$f" ] || { echo "::error::missing $f"; missing=1; }
+          done
+          if [ "$missing" = 1 ]; then
+            echo "Only the Floci worker image is buildable today (Phase 1)."
+            echo "Gateway + Streamlit Dockerfiles are Phase 3 deliverables."
+            exit 1
+          fi
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.ECR_BUILD_ROLE_ARN }} # push-only (modules/oidc build role)
+          aws-region: ${{ env.TF_AWS_REGION }}
+      - id: login
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build + push worker as sha-${{ github.sha }}
+        run: |
+          IMAGE="${{ steps.login.outputs.registry }}/coldchain/worker"
+          docker build -f integrations/floci/Dockerfile.worker -t "$IMAGE:sha-${{ github.sha }}" .
+          docker push "$IMAGE:sha-${{ github.sha }}"
+      # Phase 3: identical blocks for gateway (FastAPI+LangGraph agent) and
+      # streamlit images; images are immutable per commit (rollback doctrine,
+      # 01 §8 — rollback = re-release the previous sha-<tag>).

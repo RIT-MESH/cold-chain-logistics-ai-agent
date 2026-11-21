@@ -1,0 +1,12 @@
+apiVersion: 1
+datasources:
+  - name: ColdChainAWS
+    uid: coldchain-aws
+    type: cloudwatch
+    access: proxy
+    jsonData:
+      authType: default
+      defaultRegion: us-east-1
+    # Credentials come from the EC2 instance profile (the SDK default
+    # credential chain resolves the instance role via IMDSv2). Grafana
+    # holds NO stored AWS keys.

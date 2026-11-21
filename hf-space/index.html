@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cold-Chain Logistics AI Agent — Portfolio</title>
+<meta name="description" content="AWS-hosted cold-chain logistics AI agent: LangGraph, NVIDIA NIM, guarded SQL Server, Pinecone SOP retrieval, event-driven incident pipeline. Offline browser demo + architecture showcase.">
+<style>
+:root{--bg:#0a0f1a;--bg2:#0e1624;--card:#121c30;--card2:#16223c;--ink:#e8eefc;--mut:#8fa8c9;--mut2:#5d7595;--acc:#4da3ff;--acc2:#40e0a0;--warn:#ffb454;--err:#ff6b6b;--line:#1d2d4a;--line2:#27395c;--sim:#c792ea;--rad:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font:15px/1.65 "Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 60px}
+a{color:var(--acc);text-decoration:none}
+/* header */
+.hero{text-align:center;padding:48px 12px 12px}
+.hero h1{font-size:clamp(24px,4.5vw,40px);font-weight:800;letter-spacing:-.5px}
+.hero h1 span{color:var(--acc)}
+.hero .sub{color:var(--mut);font-size:16px;max-width:720px;margin:10px auto 16px}
+.badges{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.badge{background:var(--card);border:1px solid var(--line);color:var(--mut);padding:4px 12px;border-radius:99px;font-size:12px;white-space:nowrap}
+/* tabs */
+.tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:20px 0 24px;position:sticky;top:0;background:var(--bg);z-index:10;padding:10px 0;border-bottom:1px solid var(--line)}
+.tab{background:var(--card);border:1px solid var(--line);color:var(--mut);padding:9px 18px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:all .15s}
+.tab:hover{border-color:var(--acc)}
+.tab.on{background:var(--acc);color:#06122a;border-color:var(--acc)}
+.pane{display:none}.pane.on{display:block;animation:fadein .25s}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+/* layout */
+h2{margin:32px 0 14px;font-size:21px;border-left:4px solid var(--acc);padding-left:12px}
+h3{margin:12px 0 6px;font-size:15px;color:var(--acc)}
+p,li,td{color:var(--mut);font-size:14px}li b,td b{color:var(--acc2)}li{margin:4px 0}ul{padding-left:18px}
+.note{font-size:12px;color:var(--mut2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);padding:16px 18px}
+.grid{display:grid;gap:12px}
+@media(min-width:780px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:779px){.g2,.g3,.g4{grid-template-columns:1fr}}
+/* KPI cards */
+.kpi{background:var(--card2);border:1px solid var(--line2);border-radius:var(--rad);padding:18px;text-align:center}
+.kpi .val{font-size:clamp(22px,3.5vw,32px);font-weight:800;color:var(--acc)}
+.kpi .val.green{color:var(--acc2)}.kpi .val.warn{color:var(--warn)}
+.kpi .lbl{font-size:12px;color:var(--mut2);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+/* search/filter */
+.searchbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+input[type=search]{flex:1;min-width:200px;background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:10px 14px;border-radius:10px;font-size:15px;outline:none;transition:border .15s}
+input[type=search]:focus{border-color:var(--acc)}
+select{background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:10px;border-radius:10px;font-size:14px}
+.pill{background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:5px 12px;font-size:13px;color:var(--mut);cursor:pointer;transition:all .15s}
+.pill.on{border-color:var(--acc);color:var(--acc)}
+/* chart */
+.chartbox{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad);padding:14px;overflow-x:auto}
+.chartbox svg{display:block;min-width:640px;width:100%}
+/* data table */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.kv span{color:var(--mut2)}.kv b{color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:var(--rad);overflow:hidden}
+th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--acc);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2)}
+/* alerts */
+.alert{border-left:3px solid var(--warn);background:var(--bg2);padding:8px 12px;border-radius:6px;margin:6px 0;font-size:13px;color:var(--mut)}
+.alert.sev-high{border-left-color:var(--err)}
+.alert.sev-low{border-left-color:var(--acc2)}
+/* chat */
+.chat{display:flex;flex-direction:column;gap:12px;max-width:860px;margin:0 auto}
+.msg{max-width:88%;padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.6}
+.msg.user{background:#1b3352;align-self:flex-end;border-radius:14px 14px 4px 14px}
+.msg.ai{background:var(--card2);border:1px solid var(--line2);align-self:flex-start;border-radius:14px 14px 14px 4px;white-space:pre-wrap;width:100%;max-width:100%}
+.msg.ai .hdr{font-size:12px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.msg.ai table{margin:8px 0;font-size:13px}
+.msg.ai h4{color:var(--acc);font-size:14px;margin:10px 0 4px}
+.tag-real{color:var(--acc2);font-size:11px;font-weight:700;letter-spacing:.4px}
+.tag-sim{color:var(--sim);font-size:11px;font-weight:700;letter-spacing:.4px}
+/* AI chat interface */
+.chat-wrap{max-width:880px;margin:0 auto}
+.chat-area{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad);padding:16px;height:480px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.chat-area .msg{max-width:92%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.55;animation:fadein .2s}
+.chat-area .msg.user{background:#1b3352;align-self:flex-end;border-radius:12px 12px 4px 12px;max-width:70%}
+.chat-area .msg.ai{background:var(--card2);border:1px solid var(--line2);align-self:flex-start;border-radius:12px 12px 12px 4px;width:100%;max-width:100%;white-space:normal}
+.chat-area .msg.ai .ai-hdr{font-size:11px;color:var(--acc);font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.chat-area .msg.ai h4{color:var(--acc);font-size:14px;margin:8px 0 4px}
+.chat-area .msg.ai table{margin:6px 0;font-size:13px;width:100%}
+.chat-area .msg.ai .note{font-size:12px;color:var(--mut2);margin-top:6px}
+.chat-area .msg.ai ul{padding-left:16px;margin:4px 0}
+.chat-area .msg.ai p{font-size:14px;color:var(--mut)}
+.sop-card{background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:6px 0}
+.sop-cite{font-size:12px;color:var(--sim);margin:2px 0}
+.ev-table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0;background:var(--bg2);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.ev-table th{color:var(--acc);font-size:11px;text-transform:uppercase;padding:6px 10px;text-align:left;border-bottom:1px solid var(--line)}
+.ev-table td{padding:6px 10px;border-bottom:1px solid var(--line);color:var(--mut);font-size:13px}
+.ev-table tr:last-child td{border-bottom:none}
+.chat-input-row{display:flex;gap:10px;margin-top:12px;max-width:880px;margin-left:auto;margin-right:auto}
+.chat-input-row input{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:12px 16px;border-radius:10px;font-size:15px;outline:none}
+.chat-input-row input:focus{border-color:var(--acc)}
+.chat-input-row button{background:var(--acc);color:#06122a;border:0;padding:12px 20px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+.chat-input-row button:hover{opacity:.9}
+.chat-chips{display:flex;gap:6px;flex-wrap:wrap;max-width:880px;margin:10px auto 0;justify-content:center}
+.chat-chips .pill{font-size:12px;padding:4px 10px}
+.chat-label{font-size:12px;color:var(--mut2);text-align:center;margin:10px auto 0;max-width:880px}
+@media(max-width:640px){.chat-area{height:400px;padding:10px}.chat-input-row{flex-direction:column}}
+/* buttons */
+.btn{display:inline-block;background:var(--acc);color:#06122a;text-decoration:none;font-weight:700;padding:10px 22px;border-radius:10px;border:0;cursor:pointer;font-size:15px;transition:opacity .15s}
+.btn:hover{opacity:.9}.btn[disabled]{background:#2a3a58;color:var(--mut2);cursor:not-allowed}
+.btn.outline{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+/* misc */
+.sec{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rad);padding:14px 16px;font-size:14px;color:var(--mut)}
+.offline{background:linear-gradient(135deg,#12233f,#122c22);border:1px solid var(--line);border-radius:var(--rad);padding:14px 18px;font-size:14px;color:var(--mut);margin:14px 0}
+code{background:var(--bg2);border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-size:13px;color:var(--acc2)}
+footer{margin-top:48px;color:var(--mut2);font-size:13px;text-align:center;border-top:1px solid var(--line);padding-top:18px}
+/* accordion */
+.acc-item{background:var(--card);border:1px solid var(--line);border-radius:var(--rad);margin:8px 0;overflow:hidden}
+.acc-h{padding:14px 18px;cursor:pointer;font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:10px}
+.acc-h .ic{color:var(--acc);font-size:18px;transition:transform .2s}
+.acc-item.open .acc-h .ic{transform:rotate(90deg)}
+.acc-b{display:none;padding:0 18px 14px;font-size:14px;color:var(--mut)}
+.acc-item.open .acc-b{display:block}
+/* status dot */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.dot.on{background:var(--acc2)}.dot.off{background:var(--mut2)}
+/* timeline */
+.tl{border-left:2px solid var(--line2);margin:8px 0 8px 12px;padding-left:16px}
+.tl-item{margin:10px 0;position:relative}
+.tl-item::before{content:'';position:absolute;left:-21px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--acc)}
+.tl-item .t{font-size:12px;color:var(--mut2)}
+.tl-item .v{font-size:14px;color:var(--ink)}
+/* responsive nav */
+@media(max-width:640px){.tab{padding:7px 12px;font-size:13px}.kpi{padding:12px}.hero{padding:32px 8px 8px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Cold-Chain Logistics <span>AI Agent</span> 🧊</h1>
+  <p class="sub">An AWS-hosted AI assistant for cold-chain shipment intelligence — LangGraph agent, NVIDIA NIM, guarded SQL Server, Pinecone SOP retrieval, and an event-driven incident pipeline with full audit correlation.</p>
+  <div class="badges">
+    <span class="badge">LangGraph</span><span class="badge">NVIDIA NIM</span><span class="badge">AWS Terraform</span>
+    <span class="badge">SQL Server</span><span class="badge">Pinecone</span><span class="badge">Streamlit</span>
+    <span class="badge">Grafana</span><span class="badge">LibreChat</span><span class="badge">CloudWatch</span>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab on" id="tab-home" onclick="showTab('home')" role="tab">Overview</button>
+    <button class="tab" id="tab-chat" onclick="showTab('chat')" role="tab">🤖 AI Chat</button>
+    <button class="tab" id="tab-demo" onclick="showTab('demo')" role="tab">Shipments</button>
+    <button class="tab" id="tab-ai" onclick="showTab('ai')" role="tab">Recorded AI</button>
+    <button class="tab" id="tab-eng" onclick="showTab('eng')" role="tab">Engineering</button>
+    <button class="tab" id="tab-arch" onclick="showTab('arch')" role="tab">Architecture</button>
+    <button class="tab" id="tab-live" onclick="showTab('live')" role="tab">Live AI</button>
+  </div>
+</header>
+
+<!-- ================= OVERVIEW ================= -->
+<div class="pane on" id="pane-home">
+  <div class="offline">🟢 <b>Offline portfolio — works entirely in your browser.</b> All data is from a synthetic cold-chain dataset (2021–Oct 2026, seed 53026). No backend, no AWS connection, no API keys.</div>
+
+  <h2>System at a glance</h2>
+  <div class="grid g4">
+    <div class="kpi"><div class="val">323</div><div class="lbl">Automated tests passed</div></div>
+    <div class="kpi"><div class="val">28.5s</div><div class="lbl">Shipment report latency</div></div>
+    <div class="kpi"><div class="val">69.9s</div><div class="lbl">Incident + SOP latency</div></div>
+    <div class="kpi"><div class="val green">16/16</div><div class="lbl">Answer validation checks</div></div>
+  </div>
+
+  <h2>What this agent does</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3>📦 Shipment intelligence</h3>
+      <p>Ask about any shipment and get a natural-language report with cargo details, temperature history, GPS trace, custody handoffs, verdict and risk — all retrieved from a read-only-guarded SQL Server database.</p>
+    </div>
+    <div class="card">
+      <h3>🚨 Incident investigation</h3>
+      <p>When a temperature excursion occurs (S3 event → SQS → worker → RDS), the agent retrieves the actual incident record and cites the applicable cold-chain SOP corrective-action procedure with a verifiable citation.</p>
+    </div>
+    <div class="card">
+      <h3>🛡️ Enforceable read-only SQL guard</h3>
+      <p>The AI can only query approved <code>FDE_VIEWS</code> views — single SELECT, TOP-capped, no modifications, no base tables, no multi-statement injections. Every query is audited with a correlation ID.</p>
+    </div>
+    <div class="card">
+      <h3>✅ Deterministic answer validation</h3>
+      <p>Every prefetched answer passes a 6-check validator (no tool-call syntax, correct shipment ID, synthetic label present, no credential leakage, no fabricated data). A rejected answer is NEVER returned as success.</p>
+    </div>
+  </div>
+
+  <h2>Verified engineering evidence</h2>
+  <table>
+    <tr><th>Evidence</th><th>Result</th></tr>
+    <tr><td>Dataset import vs manifest (7 tables, 64,120 telemetry rows)</td><td><b>Exact match on every table</b></td></tr>
+    <tr><td>Combined SQL + Pinecone + synthesis E2E (Phase 6)</td><td><b>HTTP 200, 69.9s, 16/16 checks, request_id correlated</b></td></tr>
+    <tr><td>General shipment query E2E (UC-003916)</td><td><b>HTTP 200, 28.5s, 6/6 checks, natural-language report</b></td></tr>
+    <tr><td>Event pipeline E2E (S3 → SQS → worker → RDS → SNS)</td><td><b>Excursion → incident + acked notification, DLQ rejection proven</b></td></tr>
+    <tr><td>Base-table access denied to agent identity</td><td><b>Live-verified</b> (no unified.* SELECT to any app identity)</td></tr>
+    <tr><td>Infrastructure</td><td><b>Terraform-managed, zero drift, SSE-KMS state, no secrets in code</b></td></tr>
+  </table>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🔍 Explore this portfolio</h3>
+    <p>Use the tabs above: <b>Shipment Demo</b> (interactive browser demo with synthetic data), <b>AI Assistant</b> (recorded live AI responses), <b>Engineering</b> (methodology + performance), <b>Architecture</b> (system design), <b>Live AI</b> (the real AWS application).</p>
+  </div>
+</div>
+
+<!-- ================= AI CHAT (interactive offline assistant) ================= -->
+<div class="pane" id="pane-chat">
+  <div class="offline">🤖 <b>Offline AI Demonstration:</b> Answers generated from curated knowledge and bundled synthetic data. <b>No live LLM inference.</b> This is a deterministic assistant — it cannot answer questions outside the bundled data.</div>
+
+  <div class="chat-wrap">
+    <div class="chat-area" id="chat-messages" aria-live="polite" aria-label="Chat messages"></div>
+    <div class="chat-chips" id="chat-chips"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Ask about any shipment, the dataset, SOPs, architecture…" aria-label="Ask a question" autocomplete="off">
+      <button id="chat-send" aria-label="Send question">Send</button>
+      <button id="chat-clear" class="btn outline" style="font-size:13px;padding:12px 14px" aria-label="Clear chat">Clear</button>
+    </div>
+    <p class="chat-label">💡 Try: "Show UC-003241" · "highest temp UC-003241" · "incidents UC-003916" · "how many shipments" · "SOP for temperature excursion" · "help"</p>
+  </div>
+</div>
+
+<!-- ================= SHIPMENT DEMO ================= -->
+<div class="pane" id="pane-demo">
+  <div class="offline">🟢 <b>Offline Demo Mode — works entirely in your browser.</b> 12 synthetic shipments, 174 telemetry points, 22 alerts. No backend needed.</div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="searchbar">
+      <input type="search" id="q" placeholder="Search shipments — try UC-003241…" oninput="renderList()" aria-label="Search shipments">
+      <span id="pills" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+    </div>
+    <p class="note" id="count"></p>
+    <div id="list" role="list"></div>
+  </div>
+
+  <div id="detail" style="display:none">
+    <h2 id="d-title"></h2>
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="card">
+        <h3>📋 Shipment Record</h3>
+        <div class="kv" id="d-kv"></div>
+      </div>
+      <div class="card">
+        <h3>🚨 Alerts <span id="d-alert-count" class="note"></span></h3>
+        <div id="d-alerts"></div>
+      </div>
+    </div>
+
+    <h3>🌡️ Temperature timeline</h3>
+    <div class="chartbox" id="chart-temp" aria-label="Temperature chart"></div>
+    <p class="note" id="chart-temp-note"></p>
+
+    <h3 style="margin-top:18px">💧 Humidity timeline</h3>
+    <div class="chartbox" id="chart-hum" aria-label="Humidity chart"></div>
+  </div>
+</div>
+
+<!-- ================= RECORDED AI ================= -->
+<div class="pane" id="pane-ai">
+  <div class="offline">🔐 <b>Recorded from the live AWS system</b> — these are actual production responses from the deployed agent (synthetic dataset). Shown as-is; not simulated.</div>
+
+  <h2>Incident investigation + SOP citation (Phase 6 acceptance E2E)</h2>
+  <p class="note">Question: "Shipment UC-003241 reached 6.2 °C — show the incident evidence and the SOP corrective action." · Recorded 2026-11-17 · <b>69.9s total</b> · 16/16 validator checks passed · request_id: <code>4d1f8470…</code></p>
+  <div class="card" style="margin-bottom:20px">
+    <div class="chat">
+      <div class="msg user">Shipment UC-003241 reached 6.2 degrees C. Show the actual incident evidence from the database, then find the applicable SOP corrective-action procedure, cite the SOP document and section, and state the recommended corrective action.</div>
+      <div class="msg ai">
+        <div class="hdr">AI Response (recorded · Nemotron synthesis · 69.9s)</div>
+        <p style="margin-bottom:10px"><b>Synthetic Test Data Notice</b>: All evidence below is from the 2021–Oct 2026 unified test environment.</p>
+        <h4>Incident Evidence (SQL: FDE_VIEWS.VW_TELEMETRY_INCIDENTS)</h4>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Shipment ID</td><td>UC-003241</td></tr>
+          <tr><td>Incident ID</td><td><code>temp:8df143db-…</code></td></tr>
+          <tr><td>Measured Temperature</td><td><b>6.2 °C</b></td></tr>
+          <tr><td>Threshold Temperature</td><td><b>4.0 °C</b></td></tr>
+          <tr><td>Derived Severity</td><td>+2.2 °C above threshold (derived; not a stored column)</td></tr>
+          <tr><td>Provenance</td><td><b>synthetic</b> (replay/demo event)</td></tr>
+          <tr><td>Status</td><td>OPEN</td></tr>
+          <tr><td>Notification State</td><td><b>sns_acked</b> (SNS topic accepted; does NOT confirm email delivery)</td></tr>
+        </table>
+        <h4>Applicable SOP (corrective-action procedure)</h4>
+        <p><b>[Standard Operating Procedure (SYNTHETIC): Temperature Management | version 1.0-demo | section A3 | source synthetic-demo]</b></p>
+        <p><em>This is a synthetic test document — not an approved operational policy.</em></p>
+        <p style="margin:6px 0">SOP §A3 — Corrective-action procedure:</p>
+        <ol style="padding-left:18px;color:var(--mut)">
+          <li>Verify the reading is genuine: confirm the sensor and check adjacent readings.</li>
+          <li>Contact the driver to restart/verify the auxiliary cooling unit.</li>
+          <li>If the estimated delay exceeds 1 hour, divert to the nearest cold-storage facility.</li>
+          <li>Record every action with timestamps.</li>
+        </ol>
+        <h4>Recommended Corrective Action</h4>
+        <p>Follow SOP §A3: verify the sensor, have the driver restart the cooling unit, divert if delay > 1 hour. <b>Human review required before action.</b></p>
+        <h4>Limitations</h4>
+        <p style="font-size:13px">All data is synthetic test content. Notification state = topic acceptance, not recipient delivery. SOP is synthetic demo material. No real-time vehicle status claimed.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>General shipment report (Phase 8 acceptance E2E)</h2>
+  <p class="note">Question: "Give me a detailed report of shipment UC-003916." · Recorded 2026-11-18 · <b>28.5s</b> · 6/6 validator checks passed</p>
+  <div class="card" style="margin-bottom:20px">
+    <div class="chat">
+      <div class="msg user">Give me a detailed report of shipment UC-003916.</div>
+      <div class="msg ai">
+        <div class="hdr">AI Response (recorded · Nemotron synthesis · 28.5s)</div>
+        <h4>Shipment UC-003916 — Synthetic Test Report</h4>
+        <table>
+          <tr><th>Field</th><th>Value</th></tr>
+          <tr><td>Cargo type</td><td>packed salads</td></tr>
+          <tr><td>Vehicle</td><td>VEH-0158</td></tr>
+          <tr><td>Departed</td><td>2026-10-31 12:33:23</td></tr>
+          <tr><td>Arrived</td><td>2026-10-31 23:59:59</td></tr>
+          <tr><td>Receiver verdict</td><td>accepted</td></tr>
+          <tr><td>Temperature range</td><td>1.0 – 6.0 °C</td></tr>
+        </table>
+        <p>10 telemetry readings with temperature, humidity, GPS, speed and risk levels — all labeled synthetic test data.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Anti-fabrication behavior (honest failure)</h2>
+  <p class="note">During a transient database outage, the agent refused to invent values.</p>
+  <div class="card">
+    <div class="chat">
+      <div class="msg user">What is the temperature status of UC-003241?</div>
+      <div class="msg ai">
+        <div class="hdr">AI Response (recorded · honest failure)</div>
+        "I was unable to retrieve any data… I will not speculate or fill in data that wasn't returned… Until the service is restored, there is no verified evidence of UC-003241's temperature readings. Any temperature status reported right now would be fabricated — I've deliberately avoided that."
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ENGINEERING ================= -->
+<div class="pane" id="pane-eng">
+  <h2>Methodology</h2>
+
+  <div class="acc-item open">
+    <div class="acc-h" onclick="this.parentElement.classList.toggle('open')"><span class="ic">▸</span> Deterministic evidence prefetch</div>
+    <div class="acc-b">
+      <p>The AI does not decide which SQL to run for a recognized shipment question. A <b>deterministic prefetch</b> extracts the shipment ID via regex (<code>UC-\d{6}</code>) and executes 5 <b>fixed, guard-valid queries</b> before the model is called:</p>
+      <table>
+        <tr><th>Query</th><th>View</th><th>Typical latency</th></tr>
+        <tr><td>Shipment record</td><td><code>VW_SHIPMENTS</code></td><td>185 ms</td></tr>
+        <tr><td>Recent telemetry (20 readings)</td><td><code>VW_TELEMETRY</code></td><td>137 ms</td></tr>
+        <tr><td>Custody handoffs</td><td><code>VW_CUSTODY</code></td><td>156 ms</td></tr>
+        <tr><td>Incident records</td><td><code>VW_TELEMETRY_INCIDENTS</code></td><td>124 ms</td></tr>
+        <tr><td>Notification state</td><td><code>VW_INCIDENT_NOTIFICATIONS</code></td><td>137 ms</td></tr>
+      </table>
+      <p style="margin-top:8px">This collapses a ReAct multi-turn conversation (≥3 model calls) into <b>one synthesis turn</b>, eliminating tool-selection errors and reducing latency from 1500s+ (timeout) to ~30s.</p>
+    </div>
+  </div>
+
+  <div class="acc-item">
+    <div class="acc-h" onclick="this.parentElement.classList.toggle('open')"><span class="ic">▸</span> SQL security model</div>
+    <div class="acc-b">
+      <ul>
+        <li><b>Allowlist enforcement:</b> only approved <code>FDE_VIEWS.VW_*</code> schemas — base tables are physically inaccessible</li>
+        <li><b>SELECT-only:</b> INSERT/UPDATE/DELETE/DROP/ALTER/EXEC blocked by the guard parser (sqlglot T-SQL AST validation)</li>
+        <li><b>Row limits:</b> TOP 1–100 mandatory; aggregate-only queries exempt</li>
+        <li><b>Single statement:</b> multi-statement injection rejected</li>
+        <li><b>Read-only database identity:</b> the agent uses <code>USR_FDE_RO</code> with SELECT on views only — UPDATE is functionally denied</li>
+        <li><b>TLS verification:</b> SQL Server connections use ODBC Driver 18 with certificate validation (never disabled)</li>
+        <li><b>Execution timeout:</b> 10-second cap per query</li>
+        <li><b>Bounded rejection recovery:</b> repeated failed queries are metered; the agent is instructed to stop querying and answer from evidence already retrieved</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="acc-item">
+    <div class="acc-h" onclick="this.parentElement.classList.toggle('open')"><span class="ic">▸</span> Model responsibilities</div>
+    <div class="acc-b">
+      <table>
+        <tr><th>Model</th><th>Role</th><th>Why</th></tr>
+        <tr><td><code>z-ai/glm-5.3-flash</code></td><td>Primary ReAct reasoning + tool workflow</td><td>Qualified 14/15, zero API failures, best accuracy record</td></tr>
+        <tr><td><code>nvidia/nemotron-3.5-lightning-30b-a3b</code></td><td>Evidence-grounded synthesis only (prefetch path)</td><td>~1s/turn vs GLM 250–400s degraded; tool-selection errors eliminated by prefetch</td></tr>
+        <tr><td><code>nvidia/nemotron-3.5-embed-1b</code></td><td>SOP document + query embeddings (2048-d)</td><td>Same NIM endpoint/key; no new credentials</td></tr>
+      </table>
+      <p style="margin-top:8px"><b>No automatic switching:</b> the synthesis model is a fixed configuration (<code>SYTHESIS_MODEL</code> env), not a runtime fallback. GLM handles all non-prefetched questions.</p>
+    </div>
+  </div>
+
+  <div class="acc-item">
+    <div class="acc-h" onclick="this.parentElement.classList.toggle('open')"><span class="ic">▸</span> Answer validation</div>
+    <div class="acc-b">
+      <p>Every prefetched answer passes a <b>deterministic validator</b> before being returned to the user:</p>
+      <table>
+        <tr><th>Check</th><th>Purpose</th></tr>
+        <tr><td>No raw tool-call syntax</td><td>Rejects "query_telemetry_db(…)" text as a "successful" answer</td></tr>
+        <tr><td>Correct shipment ID present</td><td>Answer must reference the queried shipment</td></tr>
+        <tr><td>Synthetic-data disclosure</td><td>"Synthetic" must appear in the answer</td></tr>
+        <tr><td>No credential leakage</td><td>Regex scan for API keys, tokens, passwords</td></tr>
+        <tr><td>No fabricated temperatures</td><td>Numerical values must be grounded</td></tr>
+      </table>
+      <p style="margin-top:8px">A rejected answer returns <b>502 with the exact failed checks</b> — never the unvalidated text. The incident+SOP path uses a stricter 16-check validator including verbatim SOP citation verification.</p>
+    </div>
+  </div>
+
+  <div class="acc-item">
+    <div class="acc-h" onclick="this.parentElement.classList.toggle('open')"><span class="ic">▸</span> Audit architecture</div>
+    <div class="acc-b">
+      <p>Every request is audited with a stable <b>correlation ID</b> in CloudWatch (90-day retention):</p>
+      <ul>
+        <li><code>agent_request_end</code> — status, duration, model, tool count</li>
+        <li><code>agent_tool_event</code> — per-tool outcome, guard decision, approved views, rows, error class</li>
+        <li><code>synthesis_validation_rejected</code> — exact failed checks when the validator rejects</li>
+        <li><code>auth_failure</code> — 401s with pseudonymous actor</li>
+      </ul>
+      <p><b>Privacy:</b> no prompts, no model responses, no SQL literals, no tokens — only decisions, shapes and outcomes. Actor is a pseudonymous API-key hash.</p>
+    </div>
+  </div>
+
+  <h2>Performance measurements</h2>
+  <div class="grid g4">
+    <div class="kpi"><div class="val">28.5s</div><div class="lbl">Shipment report E2E</div></div>
+    <div class="kpi"><div class="val">69.9s</div><div class="lbl">Incident + SOP E2E</div></div>
+    <div class="kpi"><div class="val">137ms</div><div class="lbl">Avg SQL query latency</div></div>
+    <div class="kpi"><div class="val">1.2s</div><div class="lbl">Prefetch total (5 queries)</div></div>
+  </div>
+  <p class="note" style="margin-top:10px">These are one-time verified measurements, not SLAs. General ReAct answers are multi-turn and their latency depends on NVIDIA NIM serving conditions.</p>
+
+  <h2>Test coverage</h2>
+  <div class="grid g3">
+    <div class="card"><h3>323 automated tests</h3><p>SQL guard enforcement, event pipeline, audit correlation, answer validators, evidence prefetch, dashboard wiring, encoding integrity — all passing.</p></div>
+    <div class="card"><h3>2 live E2E tests</h3><p>UC-003241 incident+SOP (69.9s, 16/16 checks) and UC-003916 shipment report (28.5s, 6/6 checks) — both with exact CloudWatch request_id correlation.</p></div>
+    <div class="card"><h3>Zero drift</h3><p>Terraform-managed infrastructure verified with <code>terraform plan</code> after every deployment — no differences.</p></div>
+  </div>
+
+  <h2>Cost</h2>
+  <div class="sec">
+    <p><b>Month-to-date actual (Nov 1–18, 2026): $6.22</b> — EC2 $2.14, RDS $1.31, ALB $0.99, VPC $0.57, Secrets $0.33. Verified via Cost Explorer API. Billing alarm ($10 threshold) has never fired.</p>
+  </div>
+</div>
+
+<!-- ================= ARCHITECTURE ================= -->
+<div class="pane" id="pane-arch">
+  <h2>System architecture</h2>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>🌐 Public edge</h3>
+      <p>CloudFront (HTTPS, fail-closed) → ALB (guard header, 403 default) → OAuth2 Proxy + Cognito → Streamlit/LibreChat/Grafana</p>
+      <p class="note">Unauthenticated requests get 403; the only entry is the Cognito login page. Direct ALB/EC2 access is blocked.</p>
+    </div>
+    <div class="card">
+      <h3>🤖 AI agent</h3>
+      <p>LangGraph orchestrator with 3 tools: <code>query_telemetry_db</code> (guarded SQL), <code>search_compliance_sop</code> (Pinecone), <code>fetch_corridor_conditions</code> (weather).</p>
+      <p class="note">GLM-5.3-Flash handles general reasoning; Nemotron Lightning handles evidence-grounded synthesis on the deterministic prefetch path.</p>
+    </div>
+    <div class="card">
+      <h3>🗄️ Data layer</h3>
+      <p>RDS SQL Server Express with the unified synthetic dataset (4,020 shipments, 64,120 telemetry rows). Read via <code>FDE_VIEWS</code> only — enforced by grants + SQL guard.</p>
+      <p class="note">Separate read-only identities: agent (USR_FDE_RO), UI (USR_COLDCHAIN_UI_RO), Grafana (USR_GRAFANA_RO), writer (USR_INCIDENT_WRITER, INSERT-only).</p>
+    </div>
+    <div class="card">
+      <h3>⚡ Event pipeline</h3>
+      <p>S3 (synthetic events) → SQS → worker → RDS incidents → SNS. With DLQ, idempotency (EventId dedup), reconcile loop, CloudWatch alarms.</p>
+      <p class="note">Full audit: every event has an append-only notification attempt ledger.</p>
+    </div>
+    <div class="card">
+      <h3>📚 SOP retrieval</h3>
+      <p>Pinecone serverless (2048-d, cosine, free tier) with 7 SOP documents (44 vectors). Fixed namespace + access filter from config — user input can never alter them.</p>
+      <p class="note">Retrieved text is wrapped as untrusted reference material with citation requirements.</p>
+    </div>
+    <div class="card">
+      <h3>📊 Monitoring</h3>
+      <p>6 Grafana dashboards (operations, temp/humidity, logistics, live CloudWatch infra, incidents, AI agent audit) + 8 CloudWatch alarms + structured audit JSON.</p>
+      <p class="note">CloudWatch Logs with 90-day retention; per-request correlation IDs.</p>
+    </div>
+  </div>
+
+  <h2>Security layers</h2>
+  <div class="sec" style="margin-bottom:14px">
+    <ul>
+      <li><b>Edge:</b> CloudFront HTTPS → ALB guard header → OAuth2 Proxy + Cognito (fail-closed)</li>
+      <li><b>Application:</b> SQL guard (allowlist, SELECT-only, TOP-capped, single-statement, 10s timeout)</li>
+      <li><b>Database:</b> Read-only views (FDE_VIEWS), TLS verification (never disabled), column-level grants</li>
+      <li><b>Secrets:</b> AWS Secrets Manager → tmpfs app.env (0600, wiped on reboot, never in images/git)</li>
+      <li><b>Pinecone:</b> Config-only index/namespace/access filter; API key via hidden prompt → Secrets Manager</li>
+      <li><b>Audit:</b> Structured JSON, no prompts/responses/SQL-literals/tokens, pseudonymous actor, 90-day retention</li>
+      <li><b>Answer validation:</b> 6-check general + 16-check incident validators; rejection = 502 with failed checks</li>
+    </ul>
+  </div>
+
+  <h2>Repository</h2>
+  <div class="card"><p>Full source: Terraform modules, LangGraph orchestrator, SQL guard + 323-test suite, evidence-prefetch, answer validators, SOP ingestion pipeline, complete audit trail of every architecture decision.</p>
+  <!-- PLACEHOLDER: GITHUB_URL — replace with the public repository URL before publishing -->
+  <p style="margin-top:8px"><a class="btn outline" href="#github-pending">GitHub repository (pending)</a></p></div>
+</div>
+
+<!-- ================= LIVE AI ================= -->
+<div class="pane" id="pane-live">
+  <div class="offline">🔐 <b>Live AI on AWS</b> — the real application: Cognito-authenticated, HTTPS via CloudFront, full LangGraph + NIM + SQL Server stack. <b>Available only while the AWS demo environment exists</b>; the offline Demo tab continues to work regardless.</div>
+  <div class="card" style="text-align:center;padding:26px">
+    <h3 style="margin-top:0">Launch the live application</h3>
+    <p>Sign-in is operator-provisioned (no self-registration). Everything you ask goes through the enforceable read-only SQL guard.</p>
+    <!-- LIVE_DEMO_URL activated 2026-11-18: Phase 6 acceptance complete -->
+    <a class="btn" style="margin-top:10px" href="https://d36yix30egjffn.cloudfront.net/oauth2/start">Launch the live application</a>
+    <p class="note" style="margin-top:10px">🔒 HTTPS · Cognito-gated · no anonymous API access · SQL guard enforced</p>
+  </div>
+
+  <h2>Live vs offline</h2>
+  <table>
+    <tr><th></th><th>This offline portfolio</th><th>Live AWS application</th></tr>
+    <tr><td>Data</td><td>12 synthetic shipments (bundled)</td><td>4,020 synthetic shipments (RDS)</td></tr>
+    <tr><td>AI</td><td>Recorded responses only</td><td>Real-time LangGraph + NIM inference</td></tr>
+    <tr><td>SQL</td><td>None (static)</td><td>Guarded FDE_VIEWS queries</td></tr>
+    <tr><td>SOP</td><td>Bundled demo text</td><td>Pinecone semantic retrieval</td></tr>
+    <tr><td>AWS required?</td><td><b>No</b> — works after teardown</td><td>Yes (while the demo environment exists)</td></tr>
+  </table>
+</div>
+
+<footer>
+  Cold-Chain Logistics AI Agent · portfolio showcase · offline demo + live AWS link<br>
+  All data is synthetic (2021–Oct 2026, seed 53026) · no credentials or private endpoints in this Space<br>
+  <span class="dot off"></span>Live tab available only while the AWS environment exists
+</footer>
+</div>
+
+<script src="demo-data.js"></script>
+<script src="dataset.js"></script>
+<script src="assistant.js"></script>
+<script>
+const D = CC_DEMO_DATA;
+let sel = null, fpill = 'all';
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('tab-'+t).classList.add('on');
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pane-'+t).classList.add('on');
+}
+
+// pills
+function pill(v){return '<span class="pill" onclick="f(\''+v+'\')">'+v+'</span>';}
+document.getElementById('pills').innerHTML=['all','accepted'].map(pill).join(' ');
+document.querySelector('.pill').classList.add('on');
+function f(v){fpill=v;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));event.target.classList.add('on');renderList();}
+
+function renderList(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const m=Object.values(D.shipments).filter(s=>
+    (fpill==='all'||s.verdict===fpill)&&
+    (!q||(s.id+' '+s.cargo+' '+s.vehicle).toLowerCase().includes(q)));
+  document.getElementById('count').textContent=m.length+' of '+Object.keys(D.shipments).length+' sample shipments';
+  document.getElementById('list').innerHTML=m.map(s=>
+    '<div class="alert" style="cursor:pointer;border-left-color:'+(sel===s.id?'#4da3ff':'#ffb454')+'" onclick="pick(\''+s.id+'\')">'+
+    '<b style="color:#e8eefc">'+s.id+'</b> · '+s.cargo+' · <span class="note">'+s.departed.slice(0,10)+'</span>'+
+    (sel===s.id?' · <span class="tag-sim">SELECTED</span>':'')+'</div>').join('')||
+    '<p class="note">No matches in the sample.</p>';
+}
+
+function pick(id){
+  sel=id;renderList();
+  const s=D.shipments[id];const t=D.telemetry[id]||[];const al=D.alerts[id]||[];
+  document.getElementById('detail').style.display='block';
+  document.getElementById('d-title').textContent='Shipment '+id+' — '+s.cargo;
+
+  document.getElementById('d-kv').innerHTML=
+    '<span>Cargo</span><b>'+s.cargo+'</b>'+
+    '<span>Vehicle</span><b>'+s.vehicle+'</b>'+
+    '<span>Departed</span><b>'+s.departed.slice(0,16)+'</b>'+
+    '<span>Arrived</span><b>'+s.arrived.slice(0,16)+'</b>'+
+    '<span>Verdict</span><b style="color:#40e0a0">'+s.verdict+'</b>'+
+    '<span>Temp range</span><b>'+s.tmin+' – '+s.tmax+' °C</b>'+
+    '<span>Pallets</span><b>'+s.pallets+'</b>'+
+    '<span>Data class</span><b class="tag-sim">SYNTHETIC TEST DATA</b>';
+
+  document.getElementById('d-alert-count').textContent='('+al.length+')';
+  document.getElementById('d-alerts').innerHTML=al.map(a=>
+    '<div class="alert sev-'+(a.sev||'medium')+'"><b>'+a.at.slice(0,16)+'</b> · '+a.type+' · <span class="note">'+a.msg+'</span></div>'
+  ).join('')||'<p class="note">No alerts recorded for this shipment.</p>';
+
+  drawChart('chart-temp',t,s.tmin,s.tmax);
+  drawHum('chart-hum',t);
+  document.getElementById('chart-temp-note').textContent=
+    'Configured range: '+s.tmin+'–'+s.tmax+'°C (green zone). Values outside are excursions. Synthetic test data — not real sensor readings.';
+}
+
+function drawChart(el,t,tmin,tmax){
+  if(!t.length){document.getElementById(el).innerHTML='<p class="note">No telemetry readings available.</p>';return;}
+  const w=760,h=220,pad=40;
+  const temps=t.map(r=>r.temp);
+  const lo=Math.min(...temps,tmin-2),hi=Math.max(...temps,tmax+2);
+  const xs=(i)=>pad+(i/(t.length-1||1))*(w-pad*2);
+  const ys=(v)=>h-pad-((v-lo)/(hi-lo))*(h-pad*2);
+  const pts=t.map((r,i)=>xs(i)+','+ys(r.temp)).join(' ');
+  const line=t.map((r,i)=>r.temp).map((v,i)=>(i?'L':'M')+xs(i)+' '+ys(v)).join(' ');
+  const area=line+' L'+xs(t.length-1)+' '+(h-pad)+' L'+pad+' '+(h-pad)+' Z';
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="min-width:640px">';
+  svg+='<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#4da3ff" stop-opacity=".3"/><stop offset="100%" stop-color="#4da3ff" stop-opacity="0"/></linearGradient></defs>';
+  // safe zone
+  svg+='<rect x="'+pad+'" y="'+ys(tmax)+'" width="'+(w-pad*2)+'" height="'+(ys(tmin)-ys(tmax))+'" fill="#40e0a0" opacity="0.08" rx="4"/>';
+  svg+='<line x1="'+pad+'" y1="'+ys(tmax)+'" x2="'+(w-pad)+'" y2="'+ys(tmax)+'" stroke="#40e0a0" stroke-dasharray="4 4" stroke-width="1"/>';
+  svg+='<line x1="'+pad+'" y1="'+ys(tmin)+'" x2="'+(w-pad)+'" y2="'+ys(tmin)+'" stroke="#40e0a0" stroke-dasharray="4 4" stroke-width="1"/>';
+  svg+='<text x="'+(pad+4)+'" y="'+(ys(tmax)-4)+'" fill="#40e0a0" font-size="11">'+tmax+'°C max</text>';
+  svg+='<text x="'+(pad+4)+'" y="'+(ys(tmin)+14)+'" fill="#40e0a0" font-size="11">'+tmin+'°C min</text>';
+  // data
+  svg+='<path d="'+area+'" fill="url(#tg)"/>';
+  svg+='<path d="'+line+'" fill="none" stroke="#4da3ff" stroke-width="2" stroke-linejoin="round"/>';
+  t.forEach((r,i)=>{
+    const out=r.temp<tmin||r.temp>tmax;
+    svg+='<circle cx="'+xs(i)+'" cy="'+ys(r.temp)+'" r="3.5" fill="'+(out?'#ff6b6b':'#4da3ff')+'" stroke="'+(out?'#ff6b6b':'none')+'" stroke-width="1.5"/>';
+  });
+  svg+='<text x="'+pad+'" y="'+(h-8)+'" fill="#5d7595" font-size="11">'+t[0].at.slice(0,16)+'</text>';
+  svg+='<text x="'+(w-pad)+'" y="'+(h-8)+'" fill="#5d7595" font-size="11" text-anchor="end">'+t[t.length-1].at.slice(0,16)+'</text>';
+  svg+='</svg>';
+  document.getElementById(el).innerHTML=svg;
+}
+
+function drawHum(el,t){
+  if(!t.length){document.getElementById(el).innerHTML='<p class="note">No humidity readings.</p>';return;}
+  const w=760,h=160,pad=40;
+  const hums=t.map(r=>r.hum);
+  const lo=0,hi=Math.ceil(Math.max(...hums)/10)*10;
+  const xs=i=>pad+(i/(t.length-1||1))*(w-pad*2);
+  const ys=v=>h-pad-((v-lo)/(hi-lo))*(h-pad*2);
+  const line=t.map((r,i)=>r.hum).map((v,i)=>(i?'L':'M')+xs(i)+' '+ys(v)).join(' ');
+  let svg='<svg viewBox="0 0 '+w+' '+h+'" style="min-width:640px">';
+  svg+='<path d="'+line+' L'+xs(t.length-1)+' '+(h-pad)+' L'+pad+' '+(h-pad)+' Z" fill="#7be0b8" opacity="0.08"/>';
+  svg+='<path d="'+line+'" fill="none" stroke="#7be0b8" stroke-width="1.5"/>';
+  svg+='<text x="'+pad+'" y="'+(h-8)+'" fill="#5d7595" font-size="11">Humidity %</text>';
+  svg+='</svg>';
+  document.getElementById(el).innerHTML=svg;
+}
+
+renderList();
+</script>
+</body>
+</html>

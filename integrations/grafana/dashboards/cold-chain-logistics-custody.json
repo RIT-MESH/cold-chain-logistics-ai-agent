@@ -1,0 +1,353 @@
+{
+ "uid": "cold-chain-logistics-custody",
+ "title": "Logistics and Custody (SYNTHETIC TEST DATA)",
+ "tags": [
+  "cold-chain",
+  "synthetic-test-data"
+ ],
+ "style": "dark",
+ "timezone": "browser",
+ "schemaVersion": 41,
+ "refresh": "5m",
+ "editable": false,
+ "time": {
+  "from": "2021-01-01T00:00:00Z",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "shipment",
+    "label": "Shipment",
+    "type": "query",
+    "datasource": {
+     "type": "mssql",
+     "uid": "coldchain-sql"
+    },
+    "query": "SELECT shipment_id FROM FDE_VIEWS.VW_SHIPMENTS ORDER BY shipment_id",
+    "definition": "SELECT shipment_id FROM FDE_VIEWS.VW_SHIPMENTS ORDER BY shipment_id",
+    "refresh": 1,
+    "includeAll": false,
+    "multi": false,
+    "current": {
+     "text": "UC-003241",
+     "value": "UC-003241"
+    },
+    "options": []
+   }
+  ]
+ },
+ "panels": [
+  {
+   "type": "text",
+   "title": "Time-range guide",
+   "gridPos": {
+    "h": 4,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**Default range = the complete synthetic dataset (2021-01-01 \u2192 today)** so every shipment's readings are visible immediately \u2014 including 2021\u20132025 shipments. To zoom into one shipment's observation window, narrow the **time picker** (top right). A panel showing *\"Data outside time range\"* means rows exist but sit outside the visible window \u2014 not missing data and not a query failure. 'No readings in the selected time range' under a chart means the query succeeded but the window has no rows."
+   }
+  },
+  {
+   "type": "table",
+   "title": "Shipment timeline",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 6,
+    "w": 14,
+    "x": 0,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT shipment_id, cargo_type, pallets, vehicle_id, departed_at, expected_arrival_at, arrived_at, receiver_verdict, DATEDIFF(MINUTE, expected_arrival_at, arrived_at) AS delay_minutes FROM FDE_VIEWS.VW_SHIPMENTS WHERE shipment_id='$shipment'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "type": "piechart",
+   "title": "Delivery acceptance outcomes (all shipments)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 6,
+    "w": 10,
+    "x": 14,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT receiver_verdict AS metric, COUNT(*) AS value FROM FDE_VIEWS.VW_SHIPMENTS GROUP BY receiver_verdict",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "pieType": "donut",
+    "displayLabels": [
+     "name",
+     "percent"
+    ],
+    "legend": {
+     "displayMode": "table",
+     "placement": "right"
+    }
+   }
+  },
+  {
+   "type": "table",
+   "title": "Custody handoffs",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 10
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT handoff_no, received_by, handed_at, seal_intact FROM FDE_VIEWS.VW_CUSTODY WHERE shipment_id='$shipment' ORDER BY handoff_no",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ]
+  },
+  {
+   "type": "timeseries",
+   "title": "Speed (km/h) \u2014 modeled GPS route data",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 10
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT recorded_at AS time, speed_kmh FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND speed_kmh IS NOT NULL ORDER BY recorded_at",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocitykmh",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "timeseries",
+   "title": "Fuel level % and traffic congestion (synthetic/modeled values)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 18
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT recorded_at AS time, fuel_level_pct FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND fuel_level_pct IS NOT NULL ORDER BY recorded_at",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "timeseries",
+   "title": "Traffic congestion index (modeled)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 18
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT recorded_at AS time, traffic_congestion FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND traffic_congestion IS NOT NULL ORDER BY recorded_at",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "geomap",
+   "title": "Route GPS trace (synthetic route model)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 10,
+    "w": 24,
+    "x": 0,
+    "y": 26
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT TOP 500 latitude AS lat, longitude AS lon, recorded_at FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY recorded_at",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "view": {
+     "lat": 22,
+     "lon": 79,
+     "zoom": 4
+    },
+    "layers": [
+     {
+      "type": "markers",
+      "config": {
+       "showLegend": false
+      }
+     }
+    ],
+    "basemap": {
+     "type": "coordinates",
+     "name": "Coordinates (keyless; synthetic route data)"
+    }
+   },
+   "noValue": "No GPS points in the selected time range \u2014 widen the picker (full range 2021\u20132026)."
+  }
+ ],
+ "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations."
+}

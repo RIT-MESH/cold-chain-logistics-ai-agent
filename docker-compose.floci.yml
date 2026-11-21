@@ -1,0 +1,48 @@
+# Optional local AWS emulator. Use only in isolated development environments.
+services:
+  floci:
+    image: floci/floci:latest
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      FLOCI_HOSTNAME: floci
+      FLOCI_DEFAULT_REGION: ${AWS_REGION:-us-east-1}
+      FLOCI_STORAGE_MODE: persistent
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+    volumes:
+      - floci_data:/app/data
+    networks: [coldchain]
+  telemetry-worker:
+    build:
+      context: .
+      dockerfile: integrations/floci/Dockerfile.worker
+    working_dir: /workspace
+    command: python -m src.telemetry.worker
+    volumes:
+      - ./:/workspace:ro
+    environment:
+      AWS_ENDPOINT_URL: http://floci:4566
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      TELEMETRY_QUEUE_NAME: ${TELEMETRY_QUEUE_NAME:-coldchain-telemetry}
+      TELEMETRY_ALERT_TOPIC_NAME: ${TELEMETRY_ALERT_TOPIC_NAME:-coldchain-alerts}
+      TELEMETRY_INCIDENT_OUTPUT: /tmp/incidents.jsonl
+      TELEMETRY_THRESHOLD_C: ${TELEMETRY_THRESHOLD_C:-4.0}
+      TELEMETRY_PERSIST_SQL: ${TELEMETRY_PERSIST_SQL:-false}
+      SQL_SERVER_HOST: ${SQL_SERVER_HOST:-host.docker.internal}
+      SQL_SERVER_PORT: ${SQL_SERVER_PORT:-1433}
+      SQL_DATABASE: ${SQL_DATABASE:-master}
+      SQL_INCIDENT_WRITER_USER: ${SQL_INCIDENT_WRITER_USER:-USR_INCIDENT_WRITER}
+      SQL_INCIDENT_WRITER_PASSWORD: ${SQL_INCIDENT_WRITER_PASSWORD:-}
+      SQL_ENCRYPT: ${SQL_ENCRYPT:-yes}
+      SQL_TRUST_SERVER_CERTIFICATE: ${SQL_TRUST_SERVER_CERTIFICATE:-no}
+    depends_on: [floci]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    profiles: [worker]
+    networks: [coldchain]
+networks:
+  coldchain:
+    name: coldchain-floci-local
+volumes:
+  floci_data:

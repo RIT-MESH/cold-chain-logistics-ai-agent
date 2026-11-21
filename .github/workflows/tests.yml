@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      # The offline suite needs the agent package deps; pyodbc is NOT
+      # installable headless for SQL Server driver reasons, so the
+      # guard/validator/prefetch tests run with the lightweight subset.
+      - run: pip install pytest python-dotenv "langchain-core>=0.3" pydantic fastapi httpx "sqlglot>=25" "langgraph>=0.2"
+      - name: Run offline test suite
+        env:
+          LLM_PROVIDER: NVIDIA_NIM
+          NVIDIA_API_KEY: ci-placeholder-key
+        run: pytest -q tests/

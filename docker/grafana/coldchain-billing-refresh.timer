@@ -1,0 +1,13 @@
+# Daily trigger for coldchain-billing-refresh.service (09:30 UTC).
+# Persistent=true: if the host was STOPPED at the scheduled moment (cost
+# pause), the timer fires the missed run shortly after the next boot —
+# the scheduler recovers from EC2 stop/start without manual intervention.
+[Unit]
+Description=Daily Cost Explorer billing snapshot trigger
+
+[Timer]
+OnCalendar=*-*-* 09:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

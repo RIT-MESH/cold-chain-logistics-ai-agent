@@ -1,0 +1,28 @@
+# Terraform S3 backend — blueprint 01 §2, correction C2 / ADR-14.
+#
+# Copy this example, fill in the bucket name (from the bootstrap script
+# output), and pass at init time — Terraform cannot create its own state
+# bucket, so scripts/bootstrap_tfstate.ps1 creates it OUT-OF-BAND (once per
+# account; versioning + SSE-KMS + public-access block enforced there).
+#
+# Dev:  terraform -chdir=infra/environments/dev  init -backend-config=../../backend.dev.hcl
+# Prod: terraform -chdir=infra/environments/prod init -backend-config=../../backend.prod.hcl
+#
+#   bucket       = "cc-tfstate-<ACCOUNT_ID>"
+#   key          = "env/dev/terraform.tfstate"    # env/prod/... for prod —
+#                                                  # separate key per environment (C2)
+#   region       = "us-east-1"                     # region decision U-2 (docs/evidence/
+#                                                  # PHASE1_PLANNING_RECOMMENDATIONS.md §1)
+#   use_lockfile = true                           # S3 NATIVE state locking
+#                                                  # (Terraform >= 1.10; pinned 1.16.3 in CI).
+#                                                  # DynamoDB lock tables are DEPRECATED —
+#                                                  # no lock table exists in this design.
+#   encrypt      = true
+#   kms_key_id   = "<state-CMK-arn-from-bootstrap-script>"   # SSE-KMS dedicated CMK (01 §2)
+
+# IAM boundaries (01 §2, C2): state-object access is limited to the infra
+# OIDC roles created by infra/modules/oidc (plan = READ, apply = READ/WRITE,
+# each scoped to ITS OWN env/*/ key prefix — the dev apply role cannot read
+# or write prod state, and vice versa). No human user holds s3:PutObject on
+# state paths. State is never edited or overwritten as a rollback mechanism
+# (rollback doctrine, 01 §8 / C14).

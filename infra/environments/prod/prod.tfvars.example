@@ -1,0 +1,15 @@
+# Prod(-shaped) environment variables (09 Phase 1). Same region decision as
+# dev unless the operator explicitly splits environments across regions
+# (re-open R4-4 for any region change).
+aws_region = "us-east-1" # OPERATOR-APPROVED 2026-11-15
+
+github_org  = "CHANGE-ME"
+github_repo = "CHANGE-ME"
+
+tf_state_bucket = "cc-tfstate-123456789012"
+
+# R3-8: 120% of the 07 §4 production-shaped estimate (~$540/mo).
+billing_alarm_threshold_usd = 650
+
+# U-4 — PLACEHOLDER apex domain until the operator chooses one (ADR-15).
+apex_domain = "CHANGE-ME.example"

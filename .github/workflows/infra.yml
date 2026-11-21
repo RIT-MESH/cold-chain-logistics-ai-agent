@@ -1,0 +1,104 @@
+# Infrastructure pipeline — one of the FOUR separated workflows (correction
+# C6 / ADR-6). plan on PR; apply ONLY via workflow_dispatch with the
+# `infra-approval` GitHub Environment (required reviewers). Infrastructure
+# changes never deploy application images (release.yml) and vice versa.
+#
+# Prerequisites (repo variables/Secrets after Phase 1 apply):
+#   vars: TF_STATE_BUCKET, AWS_REGION, INFRA_PLAN_ROLE_ARN, INFRA_APPLY_ROLE_ARN, TF_STATE_KMS_KEY
+#   the state bucket from scripts/bootstrap_tfstate.ps1
+name: Terraform Infrastructure
+
+on:
+  pull_request:
+    paths: ["infra/**", ".github/workflows/infra.yml"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to apply (dev | prod)"
+        required: true
+        default: dev
+        type: choice
+        options: [dev, prod]
+
+env:
+  TF_VERSION: "1.15.8" # >= 1.10 required for use_lockfile (ADR-14); matches the operator's local Terraform
+  TF_IN_AUTOMATION: "1"
+
+permissions:
+  id-token: write # OIDC federation — no AWS keys in the repo (01 §1)
+  contents: read
+
+jobs:
+  fmt-validate:
+    name: fmt + validate (no cloud credentials)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - name: terraform fmt
+        run: terraform fmt -check -recursive infra
+      - name: terraform init (local) + validate
+        run: |
+          for env in dev prod; do
+            cd infra/environments/$env
+            terraform init -backend=false -input=false
+            terraform validate
+            cd ../../..
+          done
+
+  plan:
+    name: terraform plan (PR)
+    needs: fmt-validate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.INFRA_PLAN_ROLE_ARN }} # read-only + state READ (modules/oidc)
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: init + plan (dev)
+        working-directory: infra/environments/dev
+        run: |
+          terraform init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=env/dev/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}" -backend-config="use_lockfile=true" -backend-config="encrypt=true" -backend-config="kms_key_id=${{ vars.TF_STATE_KMS_KEY }}"
+          terraform plan -input=false -lock-timeout=180s -out=tfplan-dev
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-dev
+          path: infra/environments/dev/tfplan-dev
+          retention-days: 7
+
+  apply:
+    name: terraform apply (manual, approved)
+    needs: fmt-validate
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: infra-approval # THE manual gate (C6) — required reviewers
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.INFRA_APPLY_ROLE_ARN }} # env-scoped write + own-prefix state RW (modules/oidc)
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: init + apply (${{ inputs.environment }})
+        working-directory: infra/environments/${{ inputs.environment }}
+        run: |
+          terraform init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}" -backend-config="key=env/${{ inputs.environment }}/terraform.tfstate" -backend-config="region=${{ vars.AWS_REGION }}" -backend-config="use_lockfile=true" -backend-config="encrypt=true" -backend-config="kms_key_id=${{ vars.TF_STATE_KMS_KEY }}"
+          # Approval already happened at the GitHub Environment gate; the
+          # apply role cannot touch the OTHER environment's state (C2).
+          terraform apply -input=false -auto-approve -lock-timeout=300s
+
+  # Phase 1 acceptance item (09): parallel-plan lock-conflict test — with
+  # use_lockfile=true, two concurrent plans/applys against the same state
+  # key must serialize (second waits/fails, never interleaves). Run as a
+  # dispatch smoke after the bucket exists: two `terraform plan -lock=true`
+  # in parallel and assert one holds the lock (documented procedure; needs
+  # the real bucket, so it is a post-apply acceptance step, not local).

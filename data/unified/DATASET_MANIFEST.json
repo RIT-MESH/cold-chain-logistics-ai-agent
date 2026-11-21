@@ -1,0 +1,45 @@
+{
+  "name": "Unified Cold Chain Logistics 2021\u20132026",
+  "description": "Synthetic integrated development dataset. Original source samples are normalized and enriched with generated relationships. Not production or real operational data.",
+  "generation_seed": 53026,
+  "date_min": "2021-01-01 00:00:00",
+  "date_max": "2026-10-31 23:59:59",
+  "counts": {
+    "shipments.csv": 4020,
+    "vehicles.csv": 196,
+    "sensors.csv": 4028,
+    "telemetry.csv": 64120,
+    "custody_handoffs.csv": 10030,
+    "alerts.csv": 8094,
+    "route_events.csv": 64120
+  },
+  "source_inputs": {
+    "original_fleet_observations": 32065,
+    "2025_order_exports": 567,
+    "2025_monitor_exports": 592,
+    "2026_shipments": 30,
+    "2026_loggers": 38,
+    "2026_readings": 608,
+    "2026_custody_handoffs": 53,
+    "2024_iot_sample_rows": 10
+  },
+  "validation": "all foreign key relationships and identifier uniqueness validated in generator",
+  "yearly_shipments": {
+    "2021": 730,
+    "2022": 730,
+    "2023": 730,
+    "2024": 493,
+    "2025": 827,
+    "2026": 510
+  },
+  "sqlite_foreign_key_check": "passed",
+  "sqlite_counts": {
+    "vehicles": 196,
+    "shipments": 4020,
+    "sensors": 4028,
+    "telemetry": 64120,
+    "custody_handoffs": 10030,
+    "alerts": 8094,
+    "route_events": 64120
+  }
+}

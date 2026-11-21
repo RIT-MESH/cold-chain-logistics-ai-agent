@@ -1,0 +1,470 @@
+{
+ "uid": "cold-chain-temp-humidity",
+ "title": "Temperature and Humidity (SYNTHETIC TEST DATA)",
+ "tags": [
+  "cold-chain",
+  "synthetic-test-data"
+ ],
+ "style": "dark",
+ "timezone": "browser",
+ "schemaVersion": 41,
+ "refresh": "5m",
+ "editable": false,
+ "time": {
+  "from": "2021-01-01T00:00:00Z",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "shipment",
+    "label": "Shipment",
+    "type": "query",
+    "datasource": {
+     "type": "mssql",
+     "uid": "coldchain-sql"
+    },
+    "query": "SELECT shipment_id FROM FDE_VIEWS.VW_SHIPMENTS ORDER BY shipment_id",
+    "definition": "SELECT shipment_id FROM FDE_VIEWS.VW_SHIPMENTS ORDER BY shipment_id",
+    "refresh": 1,
+    "includeAll": false,
+    "multi": false,
+    "current": {
+     "text": "UC-003241",
+     "value": "UC-003241"
+    },
+    "options": []
+   }
+  ]
+ },
+ "panels": [
+  {
+   "type": "text",
+   "title": "Time-range guide",
+   "gridPos": {
+    "h": 4,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**Default range = the complete synthetic dataset (2021-01-01 \u2192 today)** so every shipment's readings are visible immediately \u2014 including 2021\u20132025 shipments. To zoom into one shipment's observation window, narrow the **time picker** (top right). A panel showing *\"Data outside time range\"* means rows exist but sit outside the visible window \u2014 not missing data and not a query failure. 'No readings in the selected time range' under a chart means the query succeeded but the window has no rows."
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Configured range \u00b0C",
+   "description": "Per-shipment configured range from the shipment record.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT CAST(temperature_min_c AS varchar(10)) + ' \u2013 ' + CAST(temperature_max_c AS varchar(10)) AS rng FROM FDE_VIEWS.VW_SHIPMENTS WHERE shipment_id='$shipment'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Readings",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Out-of-range readings",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_TELEMETRY t JOIN FDE_VIEWS.VW_SHIPMENTS s ON s.shipment_id=t.shipment_id WHERE t.shipment_id='$shipment' AND (t.temperature_c < s.temperature_min_c OR t.temperature_c > s.temperature_max_c)",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Humidity observations",
+   "description": "0 means this shipment has no humidity data \u2014 not a query failure.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND humidity_pct IS NOT NULL",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Alerts on this shipment",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_ALERTS WHERE shipment_id='$shipment'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Temperature \u00b0C (configured limits as thresholds 2.0 / 8.0)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 9,
+    "w": 24,
+    "x": 0,
+    "y": 8
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT recorded_at AS time, temperature_c FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND temperature_c IS NOT NULL ORDER BY recorded_at",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 2
+       },
+       {
+        "color": "red",
+        "value": 8
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "timeseries",
+   "title": "Humidity %",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 17
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT recorded_at AS time, humidity_pct FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' AND humidity_pct IS NOT NULL ORDER BY recorded_at",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "timeseries",
+   "title": "Readings per day (coverage gaps appear as missing bars)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 0,
+    "y": 25
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT CAST(CAST(recorded_at AS date) AS datetime2) AS time, COUNT(*) AS readings FROM FDE_VIEWS.VW_TELEMETRY WHERE shipment_id='$shipment' GROUP BY CAST(CAST(recorded_at AS date) AS datetime2) ORDER BY time",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "table",
+   "title": "Out-of-range readings",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 9,
+    "w": 12,
+    "x": 12,
+    "y": 25
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT TOP 50 t.recorded_at, t.temperature_c, s.temperature_min_c, s.temperature_max_c, CASE WHEN t.temperature_c < s.temperature_min_c THEN 'below' ELSE 'above' END AS direction FROM FDE_VIEWS.VW_TELEMETRY t JOIN FDE_VIEWS.VW_SHIPMENTS s ON s.shipment_id=t.shipment_id WHERE t.shipment_id='$shipment' AND (t.temperature_c < s.temperature_min_c OR t.temperature_c > s.temperature_max_c) ORDER BY t.recorded_at",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ]
+  }
+ ],
+ "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations."
+}

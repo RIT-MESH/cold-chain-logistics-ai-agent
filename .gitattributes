@@ -1,0 +1,9 @@
+* text=auto
+*.sh eol=lf
+*.py eol=lf
+*.md eol=lf
+*.yml eol=lf
+*.sql eol=lf
+*.csv -text
+*.sqlite -text
+*.pem -text

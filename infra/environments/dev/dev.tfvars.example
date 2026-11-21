@@ -1,0 +1,29 @@
+# Dev environment variables (09 Phase 1).
+aws_region = "us-east-1" # OPERATOR-APPROVED 2026-11-15 (supersedes the pending ap-northeast-1 comparison)
+
+# GitHub OIDC (C6) — fill in your org/repo before apply.
+github_org  = "CHANGE-ME"
+github_repo = "CHANGE-ME"
+
+# State bucket: deterministic name derived from the account id
+# (123456789012, verified via STS 2026-11-15) — created out-of-band by
+# scripts/bootstrap_tfstate.ps1. NOT YET BOOTSTRAPPED (verified absent).
+tf_state_bucket = "cc-tfstate-123456789012"
+
+# R3-8 billing alarm. TEMPORARY WINDOW: $10 for the 24-48 h Phase 1-7
+# validation window (operator-approved 2026-11-15, max spend $50). Restore
+# to 170 (= 120% of the ~$140/mo full-month Mode A estimate) when/if the
+# deployment becomes standing.
+billing_alarm_threshold_usd = 10
+
+# U-4 — PLACEHOLDER apex domain until the operator chooses one (ADR-15:
+# all browser services are subdomains of this one registrable domain).
+apex_domain = "CHANGE-ME.example"
+
+# ---------------------------------------------------------------- Phase 3b
+# The CloudFront distribution is LIVE (apply #1 + #2 done 2026-11-15);
+# these persist the real hostname so plans/applies no longer depend on
+# CLI -var flags (apply #2 passed them ad hoc; forgetting them would
+# regress Cognito callbacks and X-Forwarded-Host to placeholder.invalid).
+public_fqdn    = "d36yix30egjffn.cloudfront.net"
+cf_host_header = "d36yix30egjffn.cloudfront.net"

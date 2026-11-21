@@ -1,0 +1,11 @@
+# Daily Cost Explorer billing snapshot (operator directive 2026-11-22).
+# Triggered by coldchain-billing-refresh.timer (once daily 09:30 UTC —
+# Cost Explorer charges per API request). Uses the EC2 instance role only:
+# no stored credentials of any kind.
+[Unit]
+Description=Cold-Chain daily Cost Explorer billing snapshot
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/coldchain/scripts/billing_refresh.py

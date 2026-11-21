@@ -1,0 +1,691 @@
+{
+ "uid": "cold-chain-infra-ai",
+ "title": "Infrastructure and AI Monitoring (live AWS)",
+ "tags": [
+  "cold-chain",
+  "synthetic-test-data"
+ ],
+ "style": "dark",
+ "timezone": "browser",
+ "schemaVersion": 41,
+ "refresh": "5m",
+ "editable": false,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "text",
+   "title": "Live AWS monitoring",
+   "gridPos": {
+    "h": 3,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**Real CloudWatch metrics** for the EC2 app host, RDS SQL Server, and the public ALB. NIM inference latency and token usage are **not yet published to CloudWatch** (LangGraph gateway logging is a recorded Phase 3/4 follow-up; the C12 counter exists in the API response) \u2014 no panel here fabricates those values."
+   }
+  },
+  {
+   "title": "EC2 app host \u2014 CPU utilization %",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 3
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/EC2",
+     "metricName": "CPUUtilization",
+     "statistic": "Average",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "InstanceId": "i-0123456789abcdef0"
+     },
+     "dimensionFilters": [
+      {
+       "key": "InstanceId",
+       "value": "i-0123456789abcdef0",
+       "filterOption": {
+        "key": "InstanceId",
+        "operator": "=",
+        "value": "i-0123456789abcdef0"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "CPU"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "EC2 app host \u2014 network out (bytes)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 3
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/EC2",
+     "metricName": "NetworkOut",
+     "statistic": "Sum",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "InstanceId": "i-0123456789abcdef0"
+     },
+     "dimensionFilters": [
+      {
+       "key": "InstanceId",
+       "value": "i-0123456789abcdef0",
+       "filterOption": {
+        "key": "InstanceId",
+        "operator": "=",
+        "value": "i-0123456789abcdef0"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "NetOut"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "Bps",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "RDS \u2014 CPU utilization %",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 3
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/RDS",
+     "metricName": "CPUUtilization",
+     "statistic": "Average",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "DBInstanceIdentifier": "coldchain-dev-sqlexpress"
+     },
+     "dimensionFilters": [
+      {
+       "key": "DBInstanceIdentifier",
+       "value": "coldchain-dev-sqlexpress",
+       "filterOption": {
+        "key": "DBInstanceIdentifier",
+        "operator": "=",
+        "value": "coldchain-dev-sqlexpress"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "RDS CPU"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "RDS \u2014 database connections",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 11
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/RDS",
+     "metricName": "DatabaseConnections",
+     "statistic": "Average",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "DBInstanceIdentifier": "coldchain-dev-sqlexpress"
+     },
+     "dimensionFilters": [
+      {
+       "key": "DBInstanceIdentifier",
+       "value": "coldchain-dev-sqlexpress",
+       "filterOption": {
+        "key": "DBInstanceIdentifier",
+        "operator": "=",
+        "value": "coldchain-dev-sqlexpress"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "Conns"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "RDS \u2014 freeable memory (bytes)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 11
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/RDS",
+     "metricName": "FreeableMemory",
+     "statistic": "Average",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "DBInstanceIdentifier": "coldchain-dev-sqlexpress"
+     },
+     "dimensionFilters": [
+      {
+       "key": "DBInstanceIdentifier",
+       "value": "coldchain-dev-sqlexpress",
+       "filterOption": {
+        "key": "DBInstanceIdentifier",
+        "operator": "=",
+        "value": "coldchain-dev-sqlexpress"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "Mem"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "ALB \u2014 requests (sum)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 11
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/ApplicationELB",
+     "metricName": "RequestCount",
+     "statistic": "Sum",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "LoadBalancer": "app/coldchain-dev-web/6f239ed1528c3e72"
+     },
+     "dimensionFilters": [
+      {
+       "key": "LoadBalancer",
+       "value": "app/coldchain-dev-web/6f239ed1528c3e72",
+       "filterOption": {
+        "key": "LoadBalancer",
+        "operator": "=",
+        "value": "app/coldchain-dev-web/6f239ed1528c3e72"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "Reqs"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "ALB \u2014 5xx responses",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 0,
+    "y": 19
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/ApplicationELB",
+     "metricName": "HTTPCode_ELB_5XXCount",
+     "statistic": "Sum",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "LoadBalancer": "app/coldchain-dev-web/6f239ed1528c3e72"
+     },
+     "dimensionFilters": [
+      {
+       "key": "LoadBalancer",
+       "value": "app/coldchain-dev-web/6f239ed1528c3e72",
+       "filterOption": {
+        "key": "LoadBalancer",
+        "operator": "=",
+        "value": "app/coldchain-dev-web/6f239ed1528c3e72"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "5xx"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "ALB \u2014 target response time (s)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 8,
+    "y": 19
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/ApplicationELB",
+     "metricName": "TargetResponseTime",
+     "statistic": "Average",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "LoadBalancer": "app/coldchain-dev-web/6f239ed1528c3e72"
+     },
+     "dimensionFilters": [
+      {
+       "key": "LoadBalancer",
+       "value": "app/coldchain-dev-web/6f239ed1528c3e72",
+       "filterOption": {
+        "key": "LoadBalancer",
+        "operator": "=",
+        "value": "app/coldchain-dev-web/6f239ed1528c3e72"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "RT"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "title": "ALB \u2014 healthy hosts (app target group)",
+   "gridPos": {
+    "h": 8,
+    "w": 8,
+    "x": 16,
+    "y": 19
+   },
+   "datasource": {
+    "type": "cloudwatch",
+    "uid": "coldchain-aws"
+   },
+   "description": "Real AWS CloudWatch metrics for the live deployment (not synthetic).",
+   "noValue": "No CloudWatch datapoints in range for this metric/dimension",
+   "type": "timeseries",
+   "targets": [
+    {
+     "id": "m0",
+     "refId": "A",
+     "datasource": {
+      "type": "cloudwatch",
+      "uid": "coldchain-aws"
+     },
+     "namespace": "AWS/ApplicationELB",
+     "metricName": "HealthyHostCount",
+     "statistic": "Maximum",
+     "period": "300",
+     "region": "us-east-1",
+     "dimensions": {
+      "TargetGroup": "targetgroup/coldchain-dev-app/2b96a2cc6998f5fe",
+      "LoadBalancer": "app/coldchain-dev-web/6f239ed1528c3e72"
+     },
+     "dimensionFilters": [
+      {
+       "key": "TargetGroup",
+       "value": "targetgroup/coldchain-dev-app/2b96a2cc6998f5fe",
+       "filterOption": {
+        "key": "TargetGroup",
+        "operator": "=",
+        "value": "targetgroup/coldchain-dev-app/2b96a2cc6998f5fe"
+       }
+      },
+      {
+       "key": "LoadBalancer",
+       "value": "app/coldchain-dev-web/6f239ed1528c3e72",
+       "filterOption": {
+        "key": "LoadBalancer",
+        "operator": "=",
+        "value": "app/coldchain-dev-web/6f239ed1528c3e72"
+       }
+      }
+     ],
+     "matchAll": false,
+     "expression": "",
+     "queryMode": "Metrics",
+     "metricQueryType": 0,
+     "metricEditorMode": 0,
+     "alias": "AppTG"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "type": "text",
+   "title": "Estimated AWS charges (account-level, Cost Explorer)",
+   "gridPos": {
+    "h": 10,
+    "w": 24,
+    "x": 0,
+    "y": 27
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**Month-to-date AWS charges: US$ 14.97** (USD, metric `UnblendedCost`)\n\nBilling period: **2026-11-01 \u2192 2026-11-22** (Cost Explorer `End` is exclusive \u2014 the period covers through the day before it).\nData retrieved: **2026-11-21T19:17:48Z** (snapshot age: **2.1 h**) \u2014 account-level totals covering all regions and all services.\nEstimated-data status: **ESTIMATED (Cost Explorer preliminary figures)**.\n\n| Service | MTD |\n|---|---|\n| Amazon Elastic Compute Cloud - Compute | $3.90 |\n| Amazon Elastic Load Balancing | $3.33 |\n| Amazon Relational Database Service | $2.54 |\n| Amazon Virtual Private Cloud | $1.71 |\n| Tax | $1.36 |\n| AWS Secrets Manager | $1.03 |\n| EC2 - Other | $0.81 |\n| AWS Key Management Service | $0.21 |\n| AWS Cost Explorer | $0.07 |\n| AmazonCloudWatch | $0.00 |\n| Amazon Simple Storage Service | $0.00 |\n| Amazon CloudFront | $0.00 |"
+   }
+  }
+ ],
+ "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations."
+}

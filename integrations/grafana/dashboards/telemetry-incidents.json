@@ -1,0 +1,249 @@
+{
+ "uid": "cold-chain-incidents",
+ "title": "Telemetry incidents (synthetic vs real)",
+ "schemaVersion": 39,
+ "version": 1,
+ "timezone": "utc",
+ "refresh": "10s",
+ "time": {
+  "from": "now-30d",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "type": "text",
+   "title": "Incident data source and time range (read first)",
+   "gridPos": {
+    "h": 5,
+    "w": 24,
+    "x": 0,
+    "y": 0
+   },
+   "options": {
+    "mode": "markdown",
+    "content": "**Incident data source.** Incidents and telemetry events on this dashboard come from the **Phase 4 ingestion pipeline** (S3 → SQS → worker → RDS). The first synthetic incidents were ingested **2026-11-17 02:17 UTC**; event timestamps are the synthetic events' observation times (ObservedAtUtc ≈ IngestedAtUtc) — these are NOT historical 2021–2026 measurements and must not be read as newly occurring operational incidents. **Default range: last 30 days** so the ingested incident data is visible; the panels without a time filter (notification state, linkage audit, event/incident totals) always reflect the full pipeline history. For the complete 2021–2026 historical ALERT record (8,094 alerts across the synthetic dataset), see the [Cold-Chain Operations Overview](/grafana/d/cold-chain-unified/cold-chain-unified) dashboard."
+   }
+  },
+  {
+   "id": 1,
+   "title": "Incidents by provenance",
+   "type": "table",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT Provenance, COUNT(*) AS incidents FROM FDE_VIEWS.VW_TELEMETRY_INCIDENTS WHERE $__timeFilter(ObservedAtUtc) GROUP BY Provenance",
+     "format": "table"
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "title": "Latest incidents",
+   "type": "table",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 5
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT TOP (100) IncidentId, ShipmentId, ObservedAtUtc, TemperatureC, ThresholdC, Provenance, Status FROM FDE_VIEWS.VW_TELEMETRY_INCIDENTS WHERE $__timeFilter(ObservedAtUtc) ORDER BY ObservedAtUtc DESC",
+     "format": "table"
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "title": "Temperature readings (including normal readings)",
+   "type": "timeseries",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 10,
+    "w": 24,
+    "x": 0,
+    "y": 13
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT $__time(ObservedAtUtc), TemperatureC AS value, Provenance AS metric FROM FDE_VIEWS.VW_TELEMETRY_EVENTS WHERE $__timeFilter(ObservedAtUtc) ORDER BY ObservedAtUtc",
+     "format": "time_series"
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "title": "Notification state (SNS-acked != delivered — blueprint 03 §B4)",
+   "type": "table",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 0,
+    "y": 23
+   },
+   "description": "Phase 4: derived per-incident notification state from the append-only attempt ledger (dbo.IncidentNotificationAttempts). sns_acked = the SNS TOPIC accepted the message; recipient delivery is observed only via topic CloudWatch metrics.",
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT NotificationState, COUNT(*) AS incidents FROM FDE_VIEWS.VW_INCIDENT_NOTIFICATIONS GROUP BY NotificationState",
+     "format": "table"
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "title": "Incidents with notification attempts (latest 50)",
+   "type": "table",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 8,
+    "w": 12,
+    "x": 12,
+    "y": 23
+   },
+   "description": "Phase 4: reconcile visibility — AttemptCount, ack state and last attempt time per incident (append-only ledger, R3-2).",
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT TOP (50) IncidentId, ShipmentId, Provenance, NotificationState, AttemptCount, AckedCount, LastAttemptAtUtc FROM FDE_VIEWS.VW_INCIDENT_NOTIFICATIONS ORDER BY COALESCE(LastAttemptAtUtc, CreatedAtUtc) DESC",
+     "format": "table"
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "title": "C4 linkage validation failures (events referencing unknown shipments)",
+   "type": "stat",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 8,
+    "x": 0,
+    "y": 31
+   },
+   "description": "Phase 4 audit backstop: should always be 0 — the worker rejects bad shipment refs into the DLQ at ingest time.",
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT COUNT(*) AS value FROM FDE_VIEWS.VW_EVENT_LINK_VALIDATION",
+     "format": "table"
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "title": "Events ingested (provenance split)",
+   "type": "stat",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 8,
+    "x": 8,
+    "y": 31
+   },
+   "description": "Phase 4: total events in the separate ingested stream (dbo.TelemetryEvents) — never appended to unified.telemetry.",
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT COUNT(*) AS value FROM FDE_VIEWS.VW_TELEMETRY_EVENTS",
+     "format": "table"
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "title": "Incidents by provenance (total)",
+   "type": "stat",
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "gridPos": {
+    "h": 4,
+    "w": 8,
+    "x": 16,
+    "y": 31
+   },
+   "description": "Total incidents across the full ingested stream (no time filter).",
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    }
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "rawSql": "SELECT COUNT(*) AS value FROM FDE_VIEWS.VW_TELEMETRY_INCIDENTS",
+     "format": "table"
+    }
+   ]
+  }
+ ]
+}
