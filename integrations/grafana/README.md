@@ -1,0 +1,1 @@
+Provision MSSQL datasource to SQL_DATABASE containing the unified import. Use `dashboards/unified-cold-chain.json` for 2021–2026 synthetic dataset; `dashboards/telemetry-incidents.json` for separately labeled Floci events. Do not use old historical fleet views. Select historical time range explicitly.

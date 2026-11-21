@@ -1,0 +1,573 @@
+{
+ "uid": "cold-chain-unified",
+ "title": "Cold-Chain Operations Overview (SYNTHETIC TEST DATA)",
+ "tags": [
+  "cold-chain",
+  "synthetic-test-data"
+ ],
+ "style": "dark",
+ "timezone": "browser",
+ "schemaVersion": 41,
+ "refresh": "5m",
+ "editable": false,
+ "time": {
+  "from": "2021-01-01T00:00:00Z",
+  "to": "now"
+ },
+ "templating": {
+  "list": []
+ },
+ "panels": [
+  {
+   "type": "stat",
+   "title": "Total shipments",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 0
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS shipments FROM FDE_VIEWS.VW_SHIPMENTS",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Vehicles",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 0
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_VEHICLES",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Accepted",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": {
+     "colorMode": "value"
+    },
+    "x": 8,
+    "y": 0
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_SHIPMENTS WHERE receiver_verdict='accepted'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Accepted with note",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 0
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_SHIPMENTS WHERE receiver_verdict='accepted with note'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Rejected",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 16,
+    "y": 0
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_SHIPMENTS WHERE receiver_verdict='rejected'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Alerts",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 20,
+    "y": 0
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_ALERTS",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Temperature excursions",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 0,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_ALERTS WHERE alert_type='temperature_excursion'",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Sensor / GPS readings",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 4,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_TELEMETRY",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Custody handoffs",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 8,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_CUSTODY",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "stat",
+   "title": "Late arrivals (>expected)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 4,
+    "w": 4,
+    "x": 12,
+    "y": 4
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT COUNT(*) AS n FROM FDE_VIEWS.VW_SHIPMENTS WHERE arrived_at > expected_arrival_at",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "value",
+    "graphMode": "area"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short"
+    },
+    "overrides": []
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Shipment volume over time (monthly departures)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 9,
+    "w": 18,
+    "x": 0,
+    "y": 8
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT DATEADD(MONTH, DATEDIFF(MONTH, 0, departed_at), 0) AS time, COUNT(*) AS shipments FROM FDE_VIEWS.VW_SHIPMENTS GROUP BY DATEADD(MONTH, DATEDIFF(MONTH, 0, departed_at), 0) ORDER BY time",
+     "format": "time_series",
+     "editorMode": "code"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 1,
+      "fillOpacity": 8,
+      "showPoints": "auto",
+      "spanNulls": true
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   },
+   "noValue": "No readings in the selected time range \u2014 widen the time picker (full range 2021\u20132026)."
+  },
+  {
+   "type": "piechart",
+   "title": "Delivery outcomes",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 9,
+    "w": 6,
+    "x": 18,
+    "y": 8
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT receiver_verdict AS metric, COUNT(*) AS value FROM FDE_VIEWS.VW_SHIPMENTS GROUP BY receiver_verdict",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ],
+   "options": {
+    "pieType": "donut",
+    "displayLabels": [
+     "name",
+     "percent"
+    ],
+    "legend": {
+     "displayMode": "table",
+     "placement": "right"
+    }
+   }
+  },
+  {
+   "type": "table",
+   "title": "Recent alerts (latest 20)",
+   "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations.",
+   "gridPos": {
+    "h": 8,
+    "w": 24,
+    "x": 0,
+    "y": 17
+   },
+   "datasource": {
+    "type": "mssql",
+    "uid": "coldchain-sql"
+   },
+   "targets": [
+    {
+     "id": 0,
+     "refId": "A",
+     "datasource": {
+      "type": "mssql",
+      "uid": "coldchain-sql"
+     },
+     "rawSql": "SELECT TOP 20 alert_at, shipment_id, alert_type, severity, message FROM FDE_VIEWS.VW_ALERTS ORDER BY alert_at DESC",
+     "format": "table",
+     "editorMode": "code"
+    }
+   ]
+  }
+ ],
+ "description": "SYNTHETIC TEST DATA \u2014 generated dataset 2021\u2013Oct 2026; not real vehicle observations."
+}

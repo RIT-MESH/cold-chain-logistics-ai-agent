@@ -1,0 +1,61 @@
+# --- secrets and credentials (NEVER commit) -------------------------------
+.env
+.env.*
+!.env.example
+!.env.api.example
+!.env.streamlit-embed.example
+*.pem
+!integrations/grafana/rds-global-bundle.pem
+*.key
+*.p12
+*.pfx
+secrets/
+!infra/modules/secrets/
+!infra/modules/secrets/**
+!infra/modules/secrets/**
+credentials/
+private/
+*.nvapi
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfplan
+terraform.tfplan
+**/tfplan-*
+*.tfvars
+!*.tfvars.example
+*.tfvars.json
+plan_*.txt
+apply_*.txt
+errored.tfstate
+
+# --- data / databases ------------------------------------------------------
+*.sqlite
+!data/unified/unified_cold_chain.sqlite
+*.sqlite3
+*.db
+backups/
+*.bak
+
+# --- python -----------------------------------------------------------------
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+coverage/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- node / build -----------------------------------------------------------
+node_modules/
+dist/
+build/
+
+# --- logs and OS -------------------------------------------------------------
+*.log
+.DS_Store
+Thumbs.db
+.claude/

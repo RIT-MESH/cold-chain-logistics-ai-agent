@@ -1,0 +1,24 @@
+# Gitleaks configuration for this repository.
+# Uses the default rule set plus repository-specific allowlists for
+# intentional placeholders and the public AWS RDS CA bundle filename.
+title = "cold-chain-logistics-ai-agent gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Intentional placeholders, example files and public certificate material"
+paths = [
+  '''examples/env\.example''',
+  '''examples/env\.api\.example''',
+  '''examples/env\.streamlit-embed\.example''',
+  '''examples/env\.librechat\.example''',
+  '''integrations/grafana/rds-global-bundle\.pem''',  # public AWS RDS trust bundle (not a private key)
+  '''\.github/workflows/.*''',
+]
+regexes = [
+  '''YOUR_[A-Z_]+''',
+  '''changeme''',
+  '''placeholder''',
+  '''EXAMPLE''',
+]

@@ -1,0 +1,11 @@
+version: 1.2.1
+endpoints:
+  custom:
+    - name: 'Cold Chain AI'
+      apiKey: '${FDE_API_KEY}'
+      baseURL: '${FDE_GATEWAY_URL}'
+      models:
+        default: ['cold-chain-agent']
+        fetch: false
+      titleConvo: false
+      modelDisplayLabel: 'Cold-Chain Agent'

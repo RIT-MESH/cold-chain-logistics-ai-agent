@@ -1,0 +1,462 @@
+{
+  "uid": "cold-chain-agent-audit",
+  "title": "AI Agent Audit (live AWS metrics)",
+  "schemaVersion": 39,
+  "version": 4,
+  "timezone": "utc",
+  "refresh": "5m",
+  "time": {
+    "from": "2026-11-17T00:00:00Z",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Audit coverage and data sources",
+      "type": "text",
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**AI Agent Audit** — structured audit events (src/audit.py) ship as JSON lines to the /coldchain/dev/gateway CloudWatch Logs group (90-day retention).\n\n**Live panels**: CloudWatch aggregate METRICS (request/tool/rejection/error counts, reconcile state, SNS failures) (aggregates only — see the drill-down status panel at the bottom for the per-event limitation).\n\n**Event classes**: agent_request_end (status, duration, tool count), agent_tool_event (guard decision, approved views, rows, duration, error class), auth_failure (401s; pseudonymous actor only).\n\n**Privacy posture**: no prompts, no model responses, no SQL literals (rejected SQL is fingerprinted with values elided), no tokens or credentials. Actor is a pseudonymous API-key hash. request_id is the correlation key across every record."
+      }
+    },
+    {
+      "id": 2,
+      "title": "Agent requests (per 5-min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "ColdChain/Phase4",
+          "metricName": "AgentRequests",
+          "period": "300",
+          "statistic": "Sum",
+          "id": "m0",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    },
+    {
+      "id": 3,
+      "title": "Tool executions (per 5-min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "ColdChain/Phase4",
+          "metricName": "AgentToolExecutions",
+          "period": "300",
+          "statistic": "Sum",
+          "id": "m0",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    },
+    {
+      "id": 4,
+      "title": "SQL guard rejections (per 5-min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 20
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "ColdChain/Phase4",
+          "metricName": "AgentGuardRejections",
+          "period": "300",
+          "statistic": "Sum",
+          "id": "m0",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    },
+    {
+      "id": 5,
+      "title": "Agent errors (tool/db failures, per 5-min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 20
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "ColdChain/Phase4",
+          "metricName": "AgentErrors",
+          "period": "300",
+          "statistic": "Sum",
+          "id": "m0",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    },
+    {
+      "id": 6,
+      "title": "Incident-notification reconcile state (same namespace — pending incidents > 30 min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "ColdChain/Phase4",
+          "metricName": "IncidentsPendingNotification",
+          "period": "300",
+          "statistic": "Maximum",
+          "id": "m0",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    },
+    {
+      "id": 7,
+      "title": "SNS publish failures (alert topic)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "AWS/SNS",
+          "metricName": "NumberOfNotificationsFailed",
+          "dimensions": {
+            "TopicName": "coldchain-dev-alerts"
+          },
+          "period": "300",
+          "statistic": "Sum",
+          "id": "m0",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    },
+    {
+      "id": 8,
+      "title": "Per-event audit drill-down - status",
+      "type": "text",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Per-event audit drill-down (guard rejections with SQL fingerprints, tool outcomes, correlation-id joins, per-request latency) is BLOCKED by a live-found engine incompatibility** (2026-11-17): this Grafana version's CloudWatch Logs-Insights path is rejected by AWS's new \"query definition snippets\" query engine (MalformedQueryException on every expression form - 10 variants attempted: CWLI/SQL/PPL, flat and nested query scopes). This is a plugin-vs-AWS-engine alignment issue, NOT an access issue: **the IAM change is verified working** (datasource health: \"Successfully queried the CloudWatch logs API\"), and the same queries work directly via the AWS CLI/Console, e.g.\n\n```\naws logs start-query --log-group-name /coldchain/dev/gateway \\\n  --query-string 'filter event = \"agent_request_end\" | fields @timestamp, request_id, status, duration_ms, tool_events | sort @timestamp desc'\naws logs start-query --log-group-name /coldchain/dev/gateway \\\n  --query-string 'filter event = \"agent_tool_event\" and outcome = \"guard_rejected\" | fields @timestamp, request_id, guard_decision, sql_fingerprint | sort @timestamp desc'\n```\n\nAggregate monitoring (the live panels above) covers agent requests, tool executions, guard rejections, errors, reconcile state and SNS failures. Revisit the drill-down panels when the Grafana CloudWatch plugin adds support for the new AWS query engine."
+      }
+    },
+    {
+      "id": 9,
+      "title": "SOP retrievals (search_compliance_sop, per 5-min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "cloudwatch",
+        "uid": "coldchain-aws"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "id": "m0",
+          "datasource": {
+            "type": "cloudwatch",
+            "uid": "coldchain-aws"
+          },
+          "namespace": "ColdChain/Phase4",
+          "metricName": "AgentSopRetrievals",
+          "period": "300",
+          "statistic": "Sum",
+          "queryMode": "Metrics",
+          "matchAll": false,
+          "expression": "",
+          "region": "us-east-1",
+          "metricQueryType": 0,
+          "metricEditorMode": 0
+        }
+      ],
+      "noValue": "No CloudWatch datapoints in range for this metric/dimension"
+    }
+  ]
+}

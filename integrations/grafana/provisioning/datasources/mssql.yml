@@ -1,0 +1,24 @@
+apiVersion: 1
+datasources:
+  - name: ColdChainSQL
+    uid: coldchain-sql
+    type: mssql
+    access: proxy
+    url: ${SQL_SERVER_HOST}:${SQL_SERVER_PORT}
+    # Dedicated read-only identity for Grafana (ADR-4 identity separation;
+    # USR_GRAFANA_RO holds SELECT on FDE_VIEWS only — never base tables).
+    user: ${SQL_GRAFANA_USER}
+    secureJsonData:
+      password: ${SQL_GRAFANA_PASSWORD}
+    jsonData:
+      database: ${SQL_DATABASE}
+      encrypt: 'true'
+      # RDS SQL Server TLS verification (never disable encryption):
+      # the stock grafana-oss image lacks the RDS CA, so the canonical
+      # AWS global trust bundle is volume-mounted read-only and pinned
+      # here (live-found 2026-11-16: "x509: certificate signed by
+      # unknown authority" without it).
+      tlsConfigurationMethod: file
+      sslRootCertFile: /etc/grafana/rds-global-bundle.pem
+      timeInterval: 1m
+    isDefault: true

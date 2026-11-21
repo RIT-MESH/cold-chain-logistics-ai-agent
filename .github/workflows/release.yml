@@ -1,0 +1,45 @@
+# Release pipeline — one of the FOUR separated workflows (C6/ADR-6).
+# workflow_dispatch(image_tag) + `release-approval` Environment → rolls
+# containers on the EXISTING EC2 host via SSM RunCommand. Infrastructure
+# changes never flow through this workflow, and this workflow never mutates
+# infrastructure (01 §1 separation rules).
+#
+# PHASE 3 ACTIVATION: the app host is a Phase 2 deliverable, so the SSM
+# command has no target instance until then — this file ships in its final
+# shape and will report "no instances matched" rather than mis-deploy.
+# Role: modules/oidc `release` — ssm:SendCommand (document + env-tag
+# condition), NO GetSecretValue (the instance profile fetches secrets).
+name: Release App
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to release (sha-<commit>)"
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  release:
+    if: vars.AWS_DEPLOYMENT_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: release-approval # THE manual gate (C6)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.RELEASE_ROLE_ARN }} # ssm:SendCommand + ListSecrets only
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Roll containers on the app host via SSM (Phase 3+)
+        run: |
+          aws ssm send-command \
+            --document-name AWS-RunShellScript \
+            --targets "Key=tag:Environment,Values=${{ vars.APP_ENV || 'dev' }}" \
+            --comment "Release ${{ inputs.image_tag }}" \
+            --parameters commands="cd /opt/coldchain && docker compose pull && IMAGE_TAG=${{ inputs.image_tag }} docker compose up -d"
+      # Rollback doctrine (01 §8): re-run this workflow with the previous
+      # sha-<tag>. Images are immutable per commit.

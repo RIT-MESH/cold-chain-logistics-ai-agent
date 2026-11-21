@@ -1,0 +1,13 @@
+FROM python:3.11-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg ca-certificates unixodbc && \
+    mkdir -p /etc/apt/keyrings && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg && \
+    echo "deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*     && curl -sSL https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem        -o /usr/local/share/ca-certificates/rds-global-bundle.crt     && update-ca-certificates
+# ^ RDS trust anchor (live-found 2026-11-17: without it pyodbc fails
+#   'certificate verify failed: unable to get local issuer certificate';
+#   TLS verification stays ON — the same pattern as Dockerfile.streamlit).
+COPY requirements-floci.txt /tmp/requirements-floci.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-floci.txt
+WORKDIR /workspace
+CMD ["python","-m","src.telemetry.worker"]
