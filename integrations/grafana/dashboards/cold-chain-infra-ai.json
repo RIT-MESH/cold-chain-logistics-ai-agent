@@ -683,7 +683,7 @@
    },
    "options": {
     "mode": "markdown",
-    "content": "**Month-to-date AWS charges: US$ 14.97** (USD, metric `UnblendedCost`)\n\nBilling period: **2026-11-01 \u2192 2026-11-22** (Cost Explorer `End` is exclusive \u2014 the period covers through the day before it).\nData retrieved: **2026-11-21T19:17:48Z** (snapshot age: **3.3 h**) \u2014 account-level totals covering all regions and all services.\nEstimated-data status: **ESTIMATED (Cost Explorer preliminary figures)**.\n\n| Service | MTD |\n|---|---|\n| Amazon Elastic Compute Cloud - Compute | $3.90 |\n| Amazon Elastic Load Balancing | $3.33 |\n| Amazon Relational Database Service | $2.54 |\n| Amazon Virtual Private Cloud | $1.71 |\n| Tax | $1.36 |\n| AWS Secrets Manager | $1.03 |\n| EC2 - Other | $0.81 |\n| AWS Key Management Service | $0.21 |\n| AWS Cost Explorer | $0.07 |\n| AmazonCloudWatch | $0.00 |\n| Amazon Simple Storage Service | $0.00 |\n| Amazon CloudFront | $0.00 |"
+    "content": "**AWS billing snapshot not yet generated.** The daily Cost Explorer job (scripts/billing_refresh.py, host cron) has not produced `billing_snapshot.json` yet. Until it runs, no billing figures are shown \u2014 the previous hardcoded November 18 report has been removed."
    }
   }
  ],

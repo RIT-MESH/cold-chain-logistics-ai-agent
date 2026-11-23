@@ -1,0 +1,10 @@
+{
+  "name": "cold-chain-logistics-ai-agent",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Cold-Chain Logistics AI Agent — evidence-grounded shipment intelligence",
+  "type": "module",
+  "scripts": {
+    "verify:all": "node scripts/verify-all.mjs"
+  }
+}

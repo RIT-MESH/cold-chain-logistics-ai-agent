@@ -2,8 +2,9 @@
 
 A production-grade, evidence-grounded AI agent for cold-chain logistics
 operations — answering shipment, telemetry, incident, and SOP questions over
-a **guarded, read-only** SQL Server dataset, behind an OpenAI-compatible
-gateway that plugs into LibreChat.
+a **guarded, read-only** synthetic SQL Server dataset, with deterministic
+offline intelligence, NeMo Guardrails security, and Google-authenticated
+live AI (currently gated).
 
 > **Synthetic data notice:** everything the agent answers from is a SYNTHETIC
 > TEST DATASET (2021–October 2026). No real shipments, vehicles, or
@@ -21,166 +22,222 @@ say to do about it?"* — from telemetry, incidents, custody, alerts, and
 procedure documents that live in different systems. Hand-writing SQL or
 clicking through dashboards is slow; a plain LLM answer is dangerous. The
 agent must: never fabricate a temperature, never execute unvetted SQL, never
-invent a procedure citation, and stay useful when the LLM provider is having a
-bad day.
+invent a procedure citation, and stay useful when the LLM provider is having
+a bad day.
+
+## Current architecture
+
+### Offline portfolio (Hugging Face V2 — fully functional)
+
+```
+React 18 + TypeScript + Vite + Recharts
+  8 interactive views (Dashboard, Shipment Explorer, AI Assistant,
+  Incident Center, SOP Knowledge Base, Scenario Simulator,
+  Architecture, Engineering Evidence)
+  Full dataset: 4,020 shipments, 64,120 telemetry rows
+  Deterministic offline AI: no network calls, no backend required
+  Dark/light mode, responsive, keyboard-accessible
+```
+
+- **Completely AWS-independent** — works without any backend, database or AI service
+- Every interactive control works: charts, sorting, comparison, CSV/JSON export
+- CSV exports include spreadsheet formula-injection protection
+- HTML/script injection prevented (React auto-escaping + input limits)
+
+### Supabase authentication and gateway (deployed, tested)
+
+```
+Google OAuth → Supabase Free (PostgreSQL quotas) → Edge Function gateway
+  JWT verified on every request (server-side)
+  Atomic quota reservation: 10/user/day, 5/hr, 2/min
+  Concurrency: 1 per user, 2 global, 100 global/day
+  Emergency inference kill switch
+  Account suspension enforcement
+```
+
+- Google sign-in is **live and working** (only `openid`, `email`, `profile` scopes — no Gmail content access)
+- Row-Level Security on all database tables
+- Quota functions executable **only by the service role** (not by users)
+- SQL migrations hardened: hardcoded limits, daily reset logic, cross-user protection
+
+### NeMo Guardrails security service (locally tested)
+
+```
+NVIDIA NeMo Guardrails 0.25.0 (pinned) + FastAPI
+  Input rails: jailbreak, SQL injection, secret extraction detection
+  Dialog rails: topic-restricted flows
+  Tool rails: fixed allowlist, validated arguments
+  Retrieval rails: SOP prompt-injection screening
+  Output rails: secret redaction, evidence grounding
+  Fail-closed: any error → reject (never bypass guardrails)
+```
+
+- **18/18 malicious inputs detected (100% detection rate)**
+- **14/14 normal questions allowed (0 false positives)**
+- **10/10 tool authorization checks correct**
+- **8/8 output validation checks correct**
+- Rail latency: ~15ms average
+- **Zero NVIDIA tokens consumed** (LLM mocked during testing)
+
+### NVIDIA NIM inference (currently disabled)
+
+Live NVIDIA inference requires **all** of the following before activation:
+1. NeMo Guardrails deployed to a verified Python hosting runtime
+2. NVIDIA public-portfolio terms confirmed
+3. End-to-end staging tests passed
+4. Explicit operator approval
+
+**No unguarded inference will ever be enabled.** The gateway fails closed when
+NeMo Guardrails is unavailable.
+
+---
+
+## Historical AWS implementation (retired 2026-11-23)
+
+The AWS environment served as the original deployment platform from
+2026-11-15 to 2026-11-23. The complete infrastructure-as-code, deployment
+configuration, observability stack, and Phase 0–8 engineering evidence are
+preserved in this repository as historical documentation.
+
+| Component | Status |
+|---|---|
+| EC2 (t3.large, 9 Docker containers) | **Terminated** |
+| RDS SQL Server Express (SQL Server 2022) | **Deleted** (data reproducible from CSVs) |
+| Application Load Balancer + CloudFront | **Deleted** |
+| Grafana (6 dashboards, 4 datasources) | **Deleted** (dashboard JSON preserved in repo) |
+| LibreChat + Cognito authentication | **Deleted** (replaced by Supabase Google OAuth) |
+| Secrets Manager (12 secrets) | **Deleted** (credentials preserved in local `.env`) |
+| S3, SQS, SNS, CloudWatch | **Deleted** |
+| Recurring AWS charges | **~$1/month** (one KMS key, deletion pending) |
+
+The full Terraform source (30 `.tf` files across 8 modules), Docker Compose
+(9-service stack), Grafana dashboards (6 JSON), and 18 Phase 0–8 evidence
+reports are preserved in this repository. They document a verified,
+production-grade AWS deployment that was retired when the architecture
+migrated to Hugging Face Static + Supabase Free + NVIDIA NIM.
+
+---
 
 ## Key features
 
 - **Conversational shipment intelligence** — reports, contextual follow-ups
   ("any problem in *this* shipment?"), temperature/humidity history, incident
   investigation with notification state, and two-shipment comparisons with
-  explicitly stated criteria.
-- **Hardened SQL access** — one allowlisted-tool design: schema-qualified
-  `FDE_VIEWS` only, `TOP`-capped explicit-column SELECTs, no joins/CTEs/UNION,
-  read-only database identities, full TLS verification. Rejected SQL is never
-  rewritten, metered so loops terminate. See `src/guards/sql_guard.py`.
-- **Deterministic evidence prefetch** — recognized shipment questions
-  pre-run fixed guard-valid queries and answer in ONE synthesis turn
-  (seconds) instead of multi-turn tool loops.
+  explicitly stated criteria
+- **Hardened SQL access** — allowlisted `FDE_VIEWS` only, read-only identities,
+  `TOP`-capped explicit-column SELECTs, full TLS verification, TLS certificate
+  verification, never trust-server-cert
+- **Deterministic evidence prefetch** — recognized shipment questions pre-run
+  fixed guard-valid queries and answer in ONE synthesis turn
 - **Intent-based answer validation** — strict ground-truth checks for the
   incident+SOP flow, light checks for history/comparison, honest-unavailability
-  rules, one bounded corrective retry, and raw tool-call syntax never reaches
-  a user.
-- **Deterministic fallback** — if synthesis fails, a clearly labeled
-  evidence-only summary is assembled from the same guarded SQL. No blank
-  responses, ever.
-- **SOP retrieval with citations** — Pinecone vector search over procedure
-  documents with complete bracketed citations (title/version/section/status),
-  access-filtered namespaces, and an honest failure story.
-- **Audited by design** — every request, tool call, guard decision, answer
-  source, and failure class emits a structured JSON line correlated by
-  request id (CloudWatch in the AWS deployment).
-- **Event pipeline** — S3→SQS→worker→RDS synthetic telemetry ingestion with
-  DLQs, idempotency, linkage validation, exponential-backoff notification
-  reconciliation, and CloudWatch alarms.
-- **Observability** — six Grafana dashboards (operations, per-shipment
-  telemetry, logistics/custody, live AWS infrastructure, incidents, agent
-  audit) generated from code, with honest empty-states and a daily
-  Cost-Explorer billing snapshot.
+  rules, one bounded corrective retry, raw tool-call syntax never reaches a user
+- **Deterministic fallback** — if synthesis fails, a clearly-labeled
+  evidence-only summary is assembled from the same guarded SQL
+- **NeMo Guardrails** — 100% malicious-input detection, 0 false positives,
+  fail-closed, metadata-only audit logging
+- **Geography protection** — synthetic GPS coordinates are reported as recorded;
+  place-name labels are never attached without verified evidence
+- **Risk honesty** — recorded risk classifications have no documented derivation;
+  the agent never invents causes and keeps envelope compliance, risk flags,
+  confirmed incidents, and receiver verdict separate
 
-## Architecture
+## Repository structure
 
-```
-                    ┌────────────────────────────────────────────────┐
- LibreChat ────────▶│ FastAPI OpenAI-compatible gateway (api/main.py) │
- (browser)          │  context resolver → intent → validation        │
-                    └───────┬───────────────────────────┬────────────┘
-                            │                           │
-                    ┌───────▼────────┐          ┌───────▼─────────┐
-                    │ LangGraph ReAct│          │ deterministic    │
-                    │  (glm reasoner)│          │ evidence prefetch│
-                    └───────┬────────┘          └───────┬─────────┘
-                            │ tools                     │ fixed SQL
-                    ┌───────▼───────────────────────────▼─────────┐
-                    │ query_telemetry_db (SQL GUARD, read-only     │
-                    │ FDE_VIEWS identities, TLS)                   │
-                    │ search_compliance_sop (Pinecone, citations)  │
-                    │ fetch_corridor_conditions (weather)          │
-                    └──────────────────────────────────────────────┘
-                            │                        │
-                    ┌───────▼───────┐      ┌────────▼────────┐
-                    │ SQL Server    │      │ NVIDIA NIM       │
-                    │ (RDS)         │      │ glm-5.3-flash +  │
-                    │ + FDE_VIEWS  │      │ nemotron synth.  │
-                    └───────────────┘      └─────────────────┘
-```
+| Directory | Content | Status |
+|---|---|---|
+| `src/` | Python AI agent (LangGraph, SQL guard, validators, prefetch, fallback) | Current |
+| `api/` | FastAPI OpenAI-compatible gateway | Current |
+| `tests/` | Python test suite (382+ tests) | Current |
+| `hf-space-v2/` | V2 React portfolio (offline AI, NeMo Guardrails, Supabase) | Current |
+| `data/` | Complete synthetic dataset (CSVs + SQLite + import pipeline) | Current |
+| `architecture-review/` | NIM model benchmarks and validation harnesses | Historical evidence |
+| `docs/guides/` | Reusable LibreChat implementation guide | Current |
+| `infra/` | Terraform IaC (30 modules) | **Historical (AWS retired)** |
+| `docker/` | Docker Compose deployment (9 services) | **Historical (AWS retired)** |
+| `integrations/` | Grafana dashboards + LibreChat configuration | **Historical (AWS retired)** |
+| `docs/blueprint/` | Architecture design documents (13) | **Historical** |
+| `docs/evidence/` | Phase 0–8 verification reports (18) | **Historical evidence** |
+| `hf-space/` | V1 portfolio (superseded by V2) | Historical |
+| `scripts/` | Curated tools (ingestion, validation, deployment scripts) | Mixed |
 
-- **AI runtime:** NVIDIA NIM (OpenAI-compatible endpoint) —
-  `z-ai/glm-5.3-flash` for the ReAct/tool loop,
-  `nvidia/nemotron-3.5-lightning-30b-a3b` for the single-turn evidence
-  synthesis, bounded per-path timeouts.
-- **Orchestration:** LangGraph state graph; per-request unique thread ids
-  (no cross-user state), recursion-capped.
-- **Context:** deterministic referent resolution from the request's own
-  message history — "this shipment"/"it"/"them" resolve without any global
-  state (isolation by construction).
-- **Security model:** see `docs/blueprint/05_SECURITY_MODEL.md`.
-
-## Repository layout
-
-| Path | Contents |
-|---|---|
-| `src/agent/` | orchestrator, context resolver, prefetch, evidence fallback, validators, prompts |
-| `src/guards/` | the SQL guard |
-| `src/gateway/` | FastAPI gateway, Streamlit dashboard |
-| `src/telemetry/` | Phase-4 event worker + reconciliation |
-| `src/retrieval/` | SOP embedding pipeline |
-| `architecture-review/` | NIM benchmarking/validation harnesses |
-| `infra/` | Terraform (network, compute, RDS, secrets, OIDC, web, events modules) |
-| `docker/`, `integrations/` | compose stack, Grafana dashboards/provisioning, LibreChat config |
-| `examples/synthetic-data/` | the complete synthetic dataset (CSV + SQLite + schemas) |
-| `docs/` | blueprint design set, curated evidence reports, engineering guides |
-| `tests/` | the offline regression suite |
-
-## Running it
-
-The application was developed against a real AWS deployment (Terraform in
-`infra/`, docker compose in `docker/`), and also runs fully **offline**
-against the bundled SQLite dataset for demonstration:
+## Running the offline portfolio (V2)
 
 ```bash
-pip install -r requirements.txt
-export LLM_PROVIDER=NVIDIA_NIM
-export NVIDIA_API_KEY=YOUR_NVIDIA_API_KEY     # never commit real values
-cp examples/env.example .env                  # then edit
-streamlit run src/gateway/ui.py                # offline dashboard mode
-uvicorn src.gateway.api.main:app --port 8000   # OpenAI-compatible gateway
+cd hf-space-v2
+npm install                    # install React/Vite dependencies
+npm run build                  # production build (requires bundle.json)
+npm run dev                    # development server
+npx playwright test            # browser test suite (32 tests)
+npx vitest run                 # unit test suite
 ```
 
-All configuration is documented in `examples/env.example` — placeholder
-values only. See `docs/guides/LIBRECHAT_REUSABLE_IMPLEMENTATION_GUIDE.md`
-for the engineering lessons behind the gateway design.
+The offline portfolio requires **no backend, no database, no API keys, and
+no external services**. It is fully functional as a static site.
+
+## Running the Python agent tests
+
+```bash
+pip install -r requirements.txt -r requirements-api.txt
+pytest -q tests/              # 382+ tests
+```
+
+## Running the NeMo Guardrails service
+
+```bash
+cd hf-space-v2/security/nemo-guardrails
+pip install -r requirements.txt
+python nemo_service.py         # HTTP service on :9071
+python redteam_tests.py       # adversarial test suite (55 cases)
+```
+
+## Running the dataset verification
+
+```bash
+cd hf-space-v2
+node scripts/verify-dataset.mjs   # integrity checks (64,120 rows verified)
+node scripts/build-bundle.mjs      # rebuild bundle.json from CSVs
+```
 
 ## Test coverage
 
-An offline suite of **382 tests** covers: the SQL guard, validator dispatch
-(intent vs. mention), context resolution (referents, switching, isolation),
-comparison handling, geography and risk-honesty rules, evidence fallback,
-SOP-unavailability, dashboard provisioning guards, telemetry processing, and
-infrastructure guardrails.
-
-```
-382 passed in ~7 s
-```
+| Test suite | Tests | Status |
+|---|---|---|
+| Python agent (pytest) | 382+ | ✅ All passing |
+| V2 frontend (Vitest) | 64 | ✅ All passing |
+| V2 browser (Playwright) | 32 | ✅ All passing |
+| NeMo Guardrails (red-team) | 55 HTTP cases | ✅ 100% detection, 0 FP |
+| Dataset integrity (Node) | 20 checks | ✅ All passing |
+| Security scan (Gitleaks) | Full history | ✅ 0 findings |
+| TypeScript compilation | tsc --noEmit | ✅ 0 errors |
+| Production build | vite build | ✅ Succeeds |
 
 ## Verified performance (measured, not estimated)
 
-- Model qualification: glm-5.3-flash 14/15 complete-correct answers with
-  zero API failures in the post-repair battery (per
-  `docs/evidence/NVIDIA_NIM_POST_REPAIR_QUALIFICATION.md`); candidate models
-  that fabricated answers were rejected in evidence-gated validation.
-- Multi-turn guarded E2E over live RDS: correct shipment record, the single
-  true excursion corroborated from telemetry, evidence gaps disclosed,
-  non-causal correlations labeled (`docs/evidence/PHASE5_AGENT_AUDIT.md`).
-- Under a full LLM-provider outage (measured 284–302 s time-to-first-token),
-  the acceptance conversation still completed 8/8 — 5 questions via validated
-  synthesis, 3 via the labeled deterministic fallback; shipment questions
-  answered in **7–38 s** while general chat was degraded.
-- Per-answer latency in normal serving: ~10 s lookup to ~2–4 min for
-  multi-tool investigations (NIM serving variance is documented in
-  `docs/evidence/NVIDIA_NIM_LATENCY_BENCHMARK.md`).
+- Model qualification: glm-5.3-flash 14/15 complete-correct (zero API failures)
+- Under full LLM-provider degradation: 8/8 acceptance conversation completed
+  (5 via validated synthesis, 3 via labeled fallback); shipment questions
+  answered in 7–38 seconds while general chat was degraded
+- Offline AI: deterministic, instant (no network calls)
+- NeMo rail latency: 15ms average (deterministic patterns, no LLM dependency)
 
 ## Known limitations
 
-- General (non-shipment) questions depend on the ReAct path and inherit
-  provider latency; the fallback covers shipment-scoped questions only.
-- SOP citation quality depends on embedding-service availability; failure is
-  stated honestly rather than papered over.
-- The synthetic dataset intentionally mixes regions and contains modeled GPS;
-  the agent reports coordinates without place labels by design.
-- Risk classifications in the data have no documented derivation; the agent
-  never invents one.
+- Live NVIDIA inference is **disabled** pending NeMo hosting deployment +
+  terms confirmation + operator approval
+- NeMo Guardrails is locally tested but **not deployed to a production runtime**
+- Historical AWS evidence references infrastructure that no longer exists
+- Risk classifications in the dataset have no documented derivation
 
-## Deployment note (honesty)
+## Security
 
-This repository demonstrates the **application and its engineering process**.
-A live AWS deployment existed during development (single-tenant,
-authentication-gated — not a public service); its operational runbooks,
-session records, approval packages and credential material are deliberately
-NOT part of this repository. The permanent public demonstration is the
-offline portfolio: **https://huggingface.co/spaces/ritmesh/cold-chain-logistics-ai**
-which includes an interactive AI Chat assistant over the same synthetic
-dataset.
+- No credentials, API keys or internal endpoints in any published file
+- Spreadsheet formula-injection protection on all CSV exports
+- React auto-escaping (no raw HTML rendering)
+- Strict shipment-ID validation (rejects SQL injection strings)
+- Row-Level Security on all Supabase tables
+- Quota functions executable only by the service role
+- Fail-closed on any guardrail error
 
 ## License
 

@@ -59,3 +59,18 @@ build/
 .DS_Store
 Thumbs.db
 .claude/
+
+# hf-space-v2 (Vite/React build artifacts)
+hf-space-v2/node_modules/
+hf-space-v2/dist/
+hf-space-v2/screenshots/
+hf-space-v2/public/data/bundle.json
+hf-space-v2/docs/baseline/
+hf-space-v2/.temp/
+hf-space-v2/test_supabase_client.mjs
+hf-space-v2/verify_auth.mjs
+
+# Verification report outputs (regenerated per run, never committed)
+verify-reports/
+
+hf-space-v2/test-results/

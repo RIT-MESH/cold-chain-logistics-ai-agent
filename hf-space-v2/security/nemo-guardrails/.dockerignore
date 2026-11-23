@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+.git
+.env*
+!.env.example
+*.log
+node_modules
+docker-compose*
+Dockerfile
+.dockerignore
+test-results
+screenshots
+dist
+*.sqlite
+*.db

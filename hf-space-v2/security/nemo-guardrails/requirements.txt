@@ -1,0 +1,6 @@
+# Production NeMo Guardrails service dependencies (pinned)
+fastapi==0.115.6
+uvicorn==0.34.0
+nemoguardrails==0.25.0
+pydantic==2.10.4
+h11==0.14.0

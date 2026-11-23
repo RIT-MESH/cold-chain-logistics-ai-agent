@@ -1,0 +1,18 @@
+﻿<!doctype html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cold-Chain Logistics AI Agent</title></head>
+<body><div id="root"></div><script type="module" src="/src/main.tsx"></script>
+<script>
+window.addEventListener('load', () => {
+  const h = window.location.hash;
+  if (h && h.includes('access_token=')) {
+    const p = new URLSearchParams(h.substring(1));
+    const tk = p.get('access_token');
+    const d = document.createElement('div');
+    d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;color:#4da3ff;padding:40px;border-radius:12px;font-family:monospace;z-index:99999;border:2px solid #4da3ff;max-width:90%';
+    d.innerHTML = '<h3 style="color:#4da3ff">OAuth Token Captured</h3><p style="color:#8fa8c9;font-size:12px">Copy this and paste it to Claude:</p><textarea style="width:90%;height:100px;background:#0a0f1a;color:#e8eefc;border:1px solid #4da3ff;font-size:10px" readonly onclick="this.select()">' + tk + '</textarea>';
+    document.body.appendChild(d);
+  }
+});
+</script>
+</body></html>

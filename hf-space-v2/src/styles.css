@@ -1,0 +1,52 @@
+:root{--bg:#0a0f1a;--card:#121c30;--ink:#e8eefc;--mut:#8fa8c9;--mut2:#5d7595;--acc:#4da3ff;--acc2:#40e0a0;--line:#1d2d4a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px 50px}
+h1{font-size:clamp(22px,4vw,34px)}h1 span{color:var(--acc)}
+h2{margin:18px 0 12px;font-size:20px;border-left:4px solid var(--acc);padding-left:10px}
+h3{color:var(--acc);margin:10px 0 6px}
+p,li{color:var(--mut);font-size:14px;margin:6px 0}
+.note{font-size:12px;color:var(--mut2)}
+.synth{background:#2a1f3d;color:#c792ea;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;margin-left:8px;vertical-align:middle}
+.hero{text-align:center;padding:30px 8px 6px}.hero .sub{max-width:640px;margin:8px auto}
+.tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:16px 0;position:sticky;top:0;background:var(--bg);z-index:10;padding:8px 0;border-bottom:1px solid var(--line)}
+.tab{background:var(--card);border:1px solid var(--line);color:var(--mut);padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none}
+.tab.on{background:var(--acc);color:#06122a;border-color:var(--acc)}
+.grid{display:grid;gap:12px;margin:12px 0}
+@media(min-width:760px){.g4{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:759px){.g4{grid-template-columns:1fr 1fr}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+.kpi .val{font-size:clamp(20px,3vw,30px);font-weight:800;color:var(--acc)}
+.kpi .lbl{font-size:11px;color:var(--mut2);text-transform:uppercase;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{color:var(--acc);font-size:11px;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--mut)}
+.row{cursor:pointer}.row:hover td{background:#0e1624}
+input{background:#0e1624;border:1px solid var(--line);color:var(--ink);padding:10px 12px;border-radius:9px;font-size:14px;outline:none;margin:4px 4px 4px 0}
+input:focus{border-color:var(--acc)}
+button{background:var(--acc);color:#06122a;border:0;padding:9px 16px;border-radius:9px;font-weight:700;cursor:pointer;margin:4px 2px}
+button.outline{background:transparent;color:var(--acc);border:1px solid var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
+.detail h3{margin-top:0}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:460px;overflow-y:auto;margin:12px 0}
+.msg{padding:10px 14px;border-radius:12px;font-size:14px;white-space:pre-wrap;max-width:95%}
+.msg.user{background:#1b3352;align-self:flex-end}
+.msg.ai{background:var(--card);border:1px solid var(--line);align-self:flex-start}
+.chat-input{display:flex;gap:8px}.chat-input input{flex:1}
+.pager button{margin:4px 2px}
+footer{margin-top:40px;color:var(--mut2);font-size:12px;text-align:center;border-top:1px solid var(--line);padding-top:14px}
+
+/* light theme (dark is default via :root; light overrides via [data-theme]) */
+[data-theme="light"] body, body[data-theme="light"]{background:#f4f7fc;color:#152036}
+[data-theme="light"]{--bg:#f4f7fc;--card:#ffffff;--ink:#152036;--mut:#42597c;--mut2:#7d90ab;--line:#d5e0f0}
+[data-theme="light"] .tabs{background:#f4f7fc}
+[data-theme="light"] .tab{background:#fff;border-color:#d5e0f0}
+[data-theme="light"] .msg.ai{background:#fff}
+[data-theme="light"] input{background:#fff}
+[data-theme="light"] .kpi{background:#fff}
+[data-theme="light"] td, [data-theme="light"] th{border-color:#d5e0f0}
+[data-theme="light"] .row:hover td{background:#eaf1fb}
+.theme{background:transparent;color:var(--mut);border:1px solid var(--line);margin-top:8px}
+.error{border-color:#a33}
+.chartbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px}
+.tl-item{margin:8px 0}
