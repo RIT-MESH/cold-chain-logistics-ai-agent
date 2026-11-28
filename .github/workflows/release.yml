@@ -29,8 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: release-approval # THE manual gate (C6)
     steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: actions/checkout@v7
+      - uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ vars.RELEASE_ROLE_ARN }} # ssm:SendCommand + ListSecrets only
           aws-region: ${{ vars.AWS_REGION }}
